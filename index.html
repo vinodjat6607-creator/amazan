@@ -34,13 +34,13 @@
         };
         
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-const list = document.getElementById('product-list');
+       const db = firebase.database();
+        
         // Cloud se data lakar dikhana
         db.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
-            const list = document.getElementById('product-list');
-            list.innerHTML = ""; 
+            const productContainer = document.getElementById('product-list');
+            productContainer.innerHTML = "";
             
             if (data) {
                 for(let id in data) {
