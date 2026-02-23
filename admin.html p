@@ -1,0 +1,8 @@
+<script>
+    // Ye code page khulne se pehle password poochega
+    var pin = prompt("Admin PIN daalein:");
+    if (pin !== "6607") { 
+        alert("Galat PIN! Aapko allow nahi kiya ja sakta.");
+        window.location.href = "index.html"; 
+    }
+</script>
