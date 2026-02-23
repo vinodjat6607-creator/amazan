@@ -15,16 +15,37 @@
         <br><br>
         <a href="index.html" class="text-blue-500 underline text-sm">Go back to Shop</a>
     </div>
+   <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script>
+        // Aapka asli config code
+        const firebaseConfig = {
+            apiKey: "AIzaSyClAPpjVxdjzPP1I1qskZ396-uCEmgNrQ",
+            authDomain: "amazan-df63b.firebaseapp.com",
+            databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com",
+            projectId: "amazan-df63b",
+            storageBucket: "amazan-df63b.firebasestorage.app",
+            messagingSenderId: "602713652429",
+            appId: "1:602713652429:web:fb6940fcdeb990d89e3d84",
+            measurementId: "G-M9J8D9B6Q3"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         function saveProduct() {
-            let products = JSON.parse(localStorage.getItem('myProducts')) || [];
-            products.push({
-                name: document.getElementById('pName').value,
-                price: document.getElementById('pPrice').value,
-                img: document.getElementById('pImg').value
-            });
-            localStorage.setItem('myProducts', JSON.stringify(products));
-            alert("Samaan add ho gaya! Home page check karein.");
+            const name = document.getElementById('pName').value;
+            const price = document.getElementById('pPrice').value;
+            const img = document.getElementById('pImg').value;
+
+            if(name && price && img) {
+                db.ref('products').push({ name, price, img });
+                alert("Mubarak ho! Samaan Cloud par save ho gaya.");
+                document.getElementById('pName').value = ""; 
+                document.getElementById('pPrice').value = ""; 
+                document.getElementById('pImg').value = "";
+            } else {
+                alert("Kripya saari details bharein!");
+            }
         }
     </script>
 </body>
