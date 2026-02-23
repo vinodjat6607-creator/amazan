@@ -1,22 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-    <title>Amazan Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazan Admin - Secret Access</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // --- PASSWORD SYSTEM ---
+        // Yahan aap apna PIN badal sakte hain (Abhi 6607 hai)
+        var pin = prompt("Dukan ka Secret PIN daalein:");
+        if (pin !== "6607") { 
+            alert("Galat PIN! Aapko ijazat nahi hai.");
+            window.location.href = "index.html"; 
+        }
+    </script>
 </head>
-<body class="bg-gray-100 p-5">
-    <div class="max-w-md mx-auto bg-white p-6 rounded shadow-lg">
-        <h2 class="text-xl font-bold mb-4 border-b pb-2">Naya Samaan Add Karein</h2>
-        <input id="n" type="text" placeholder="Product Name (e.g. Samsung S24)" class="w-full border p-2 mb-2 rounded">
-        <input id="p" type="text" placeholder="Price (e.g. 120000)" class="w-full border p-2 mb-2 rounded">
-        <input id="i" type="text" placeholder="Image Link (URL)" class="w-full border p-2 mb-4 rounded">
-        <button onclick="add()" class="w-full bg-orange-500 text-white py-2 rounded font-bold">Add to Shop 🚀</button>
-        <p id="msg" class="text-green-600 mt-2 font-bold"></p>
+<body class="bg-gray-900 text-white font-sans">
+
+    <nav class="bg-black p-4 border-b border-orange-500">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-black text-orange-500 italic">AMAZAN <span class="text-white text-sm">ADMIN</span></h1>
+            <a href="index.html" class="text-xs bg-gray-700 px-3 py-1 rounded">View Shop</a>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto p-6">
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-xl mb-10 border border-gray-700">
+            <h2 class="text-lg font-bold mb-4 text-orange-400">Naya Product Add Karein</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" id="pName" placeholder="Product ka Naam" class="bg-gray-700 p-3 rounded-lg outline-none focus:ring-2 ring-orange-500">
+                <input type="text" id="pPrice" placeholder="Price (e.g. 49,999)" class="bg-gray-700 p-3 rounded-lg outline-none focus:ring-2 ring-orange-500">
+                <input type="text" id="pImg" placeholder="Image Link (URL)" class="bg-gray-700 p-3 rounded-lg outline-none focus:ring-2 ring-orange-500">
+                <button onclick="addProduct()" class="bg-orange-500 text-black font-bold py-3 rounded-lg hover:bg-orange-400 transition">Add To Shop</button>
+            </div>
+        </div>
+
+        <h2 class="text-lg font-bold mb-4 text-gray-400">Dukan ka Samaan (Edit/Delete)</h2>
+        <div id="admin-product-list" class="space-y-4">
+            </div>
     </div>
 
     <script>
+        // Aapka Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyClAPpjVxdjzPP1I1qskZ396-uCEmgNrQ",
             authDomain: "amazan-df63b.firebaseapp.com",
@@ -29,24 +57,50 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function add() {
-            const name = document.getElementById('n').value;
-            const price = document.getElementById('p').value;
-            const img = document.getElementById('i').value;
-            
+        // Product Add karne ka function
+        function addProduct() {
+            const name = document.getElementById('pName').value;
+            const price = document.getElementById('pPrice').value;
+            const img = document.getElementById('pImg').value;
+
             if(name && price && img) {
-                db.ref('products').push({ name, price, img })
-                .then(() => {
-                    document.getElementById('msg').innerText = "Mubarak ho! Samaan save ho gaya.";
-                    document.getElementById('n').value = "";
-                    document.getElementById('p').value = "";
-                    document.getElementById('i').value = "";
-                })
-                .catch((e) => alert("Error: " + e.message));
+                db.ref('products').push({ name, price, img });
+                alert("Samaan Add ho gaya!");
+                document.getElementById('pName').value = "";
+                document.getElementById('pPrice').value = "";
+                document.getElementById('pImg').value = "";
             } else {
-                alert("Bhai, saari details toh bharo!");
+                alert("Saari jankari bhariye!");
             }
         }
+
+        // Product Delete karne ka function
+        function deleteProduct(id) {
+            if(confirm("Kya aap ise dukan se hatana chahte hain?")) {
+                db.ref('products/' + id).remove();
+            }
+        }
+
+        // Live Product List dikhana
+        db.ref('products').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const list = document.getElementById('admin-product-list');
+            list.innerHTML = "";
+            for(let id in data) {
+                let p = data[id];
+                list.innerHTML += `
+                    <div class="bg-gray-800 p-4 rounded-xl flex items-center justify-between border border-gray-700">
+                        <div class="flex items-center gap-4">
+                            <img src="${p.img}" class="w-12 h-12 object-cover rounded">
+                            <div>
+                                <p class="font-bold text-sm">${p.name}</p>
+                                <p class="text-orange-400 text-xs font-bold">₹${p.price}</p>
+                            </div>
+                        </div>
+                        <button onclick="deleteProduct('${id}')" class="bg-red-500/20 text-red-500 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition text-xs font-bold">Delete</button>
+                    </div>`;
+            }
+        });
     </script>
 </body>
 </html>
