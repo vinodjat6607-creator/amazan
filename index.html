@@ -1,63 +1,39 @@
-<html>
-        <head><title>Downloaded HTML</title></head>
-        <body>
-            <pre style="white-space: pre-wrap; word-wrap: break-word;"><!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="hi">
 <head>
-    <title>Admin - Manage Shop</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazan Clone - Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style> .amazon-blue { background-color: #131921; } .amazon-yellow { background-color: #febd69; } </style>
 </head>
-<body class="bg-gray-200 p-10">
-    <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-xl">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-yellow-500 pb-2">Admin Panel</h2>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="block font-bold">Product Name</label>
-                <input id="pName" type="text" class="w-full border p-2 rounded">
-            </div>
-            <div>
-                <label class="block font-bold">Price (₹)</label>
-                <input id="pPrice" type="text" class="w-full border p-2 rounded">
-            </div>
-            <div>
-                <label class="block font-bold">Image Link (URL)</label>
-                <input id="pImg" type="text" class="w-full border p-2 rounded" placeholder="Paste image link here">
-            </div>
-            <button onclick="saveProduct()" class="w-full bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700">Add to Shop Live</button>
+<body class="bg-gray-100">
+    <nav class="amazon-blue text-white p-3 flex justify-between items-center">
+        <div class="text-2xl font-bold text-orange-400">Amazan</div>
+        <div class="space-x-4">
+            <a href="index.html" class="text-white">Home</a>
+            <a href="admin.html" class="text-yellow-400 font-bold">Admin Panel</a>
         </div>
-
-        <div class="mt-10">
-            <h3 class="font-bold border-t pt-4">Current Inventory:</h3>
-            <ul id="inventory" class="mt-2 space-y-2 text-sm"></ul>
-            <button onclick="clearData()" class="mt-4 text-red-500 text-xs underline text-center w-full">Reset Everything</button>
+    </nav>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6" id="product-list">
         </div>
-    </div>
-
     <script>
-        function saveProduct() {
-            let products = JSON.parse(localStorage.getItem('myProducts')) || [];
-            const newP = {
-                name: document.getElementById('pName').value,
-                price: document.getElementById('pPrice').value,
-                img: document.getElementById('pImg').value
-            };
-            products.push(newP);
-            localStorage.setItem('myProducts', JSON.stringify(products));
-            alert("Success! Check Home Page.");
-            location.reload();
+        function loadProducts() {
+            const products = JSON.parse(localStorage.getItem('myProducts')) || [
+                { name: "iPhone 15", price: "79,900", img: "https://m.media-amazon.com/images/I/71d7rfSl0wL._AC_UY218_.jpg" },
+                { name: "Sony Headphones", price: "24,000", img: "https://m.media-amazon.com/images/I/61H7W-OHT6L._AC_UY218_.jpg" }
+            ];
+            const list = document.getElementById('product-list');
+            list.innerHTML = products.map(p => `
+                <div class="bg-white p-4 rounded shadow-md text-center">
+                    <img src="${p.img}" class="h-40 mx-auto object-contain">
+                    <h3 class="font-bold mt-2">${p.name}</h3>
+                    <p class="text-red-700 font-bold">₹${p.price}</p>
+                    <button class="amazon-yellow w-full mt-2 py-1 rounded-full">Add to Cart</button>
+                </div>
+            `).join('');
         }
-
-        function showInventory() {
-            const products = JSON.parse(localStorage.getItem('myProducts')) || [];
-            document.getElementById('inventory').innerHTML = products.map(p => `<li>✅ ${p.name} - ₹${p.price}</li>`).join('');
-        }
-        
-        function clearData() { if(confirm("Sab delete kar dein?")) { localStorage.clear(); location.reload(); } }
-        
-        window.onload = showInventory;
+        window.onload = loadProducts;
     </script>
 </body>
-</html></pre>
-        </body>
-    </html>
+</html>
