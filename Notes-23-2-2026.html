@@ -1,0 +1,59 @@
+<html>
+        <head><title>Downloaded HTML</title></head>
+        <body>
+            <pre style="white-space: pre-wrap; word-wrap: break-word;"><!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazan Clone - Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .amazon-yellow { background-color: #febd69; }
+        .amazon-blue { background-color: #131921; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <nav class="amazon-blue text-white p-3 flex flex-col md:flex-row items-center justify-between">
+        <div class="text-2xl font-bold text-orange-400">Amazan</div>
+        <div class="flex-1 mx-4 w-full mt-2 md:mt-0">
+            <input type="text" placeholder="Search items..." class="w-full p-2 rounded text-black outline-none">
+        </div>
+        <div class="flex gap-4 mt-2 md:mt-0">
+            <a href="login.html" class="hover:text-orange-400">Login</a>
+            <a href="admin.html" class="hover:text-orange-400 font-bold text-yellow-400">Admin Mode</a>
+            <div class="cursor-pointer">🛒 Cart (0)</div>
+        </div>
+    </nav>
+
+    <div class="w-full h-40 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold">
+        Big Billion Days Are Live! 🚀
+    </div>
+
+    <div class="p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6" id="product-list">
+        </div>
+
+    <script>
+        // Ye function data ko browser mein save rakhega (Local Storage)
+        function loadProducts() {
+            const products = JSON.parse(localStorage.getItem('myProducts')) || [
+                { name: "iPhone 15", price: "79,900", img: "https://m.media-amazon.com/images/I/71d7rfSl0wL._AC_UY218_.jpg" },
+                { name: "Sony Headphones", price: "24,000", img: "https://m.media-amazon.com/images/I/61H7W-OHT6L._AC_UY218_.jpg" }
+            ];
+
+            const list = document.getElementById('product-list');
+            list.innerHTML = products.map(p => `
+                <div class="bg-white p-4 rounded shadow-md flex flex-col items-center">
+                    <img src="${p.img}" class="h-48 object-contain mb-4">
+                    <h3 class="font-bold text-lg">${p.name}</h3>
+                    <p class="text-red-700 font-bold text-xl">₹${p.price}</p>
+                    <button class="amazon-yellow w-full mt-3 py-2 rounded-full font-semibold shadow-sm hover:bg-yellow-500">Add to Cart</button>
+                </div>
+            `).join('');
+        }
+        window.onload = loadProducts;
+    </script>
+</body>
+</html></pre>
+        </body>
+    </html>

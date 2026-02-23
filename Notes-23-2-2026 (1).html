@@ -1,0 +1,63 @@
+<html>
+        <head><title>Downloaded HTML</title></head>
+        <body>
+            <pre style="white-space: pre-wrap; word-wrap: break-word;"><!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Manage Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-200 p-10">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-xl">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-yellow-500 pb-2">Admin Panel</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block font-bold">Product Name</label>
+                <input id="pName" type="text" class="w-full border p-2 rounded">
+            </div>
+            <div>
+                <label class="block font-bold">Price (₹)</label>
+                <input id="pPrice" type="text" class="w-full border p-2 rounded">
+            </div>
+            <div>
+                <label class="block font-bold">Image Link (URL)</label>
+                <input id="pImg" type="text" class="w-full border p-2 rounded" placeholder="Paste image link here">
+            </div>
+            <button onclick="saveProduct()" class="w-full bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700">Add to Shop Live</button>
+        </div>
+
+        <div class="mt-10">
+            <h3 class="font-bold border-t pt-4">Current Inventory:</h3>
+            <ul id="inventory" class="mt-2 space-y-2 text-sm"></ul>
+            <button onclick="clearData()" class="mt-4 text-red-500 text-xs underline text-center w-full">Reset Everything</button>
+        </div>
+    </div>
+
+    <script>
+        function saveProduct() {
+            let products = JSON.parse(localStorage.getItem('myProducts')) || [];
+            const newP = {
+                name: document.getElementById('pName').value,
+                price: document.getElementById('pPrice').value,
+                img: document.getElementById('pImg').value
+            };
+            products.push(newP);
+            localStorage.setItem('myProducts', JSON.stringify(products));
+            alert("Success! Check Home Page.");
+            location.reload();
+        }
+
+        function showInventory() {
+            const products = JSON.parse(localStorage.getItem('myProducts')) || [];
+            document.getElementById('inventory').innerHTML = products.map(p => `<li>✅ ${p.name} - ₹${p.price}</li>`).join('');
+        }
+        
+        function clearData() { if(confirm("Sab delete kar dein?")) { localStorage.clear(); location.reload(); } }
+        
+        window.onload = showInventory;
+    </script>
+</body>
+</html></pre>
+        </body>
+    </html>
