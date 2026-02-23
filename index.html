@@ -4,47 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Amazan Shop</title>
-    
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        .amazon-blue { background-color: #131921; }
-        .amazon-yellow { background-color: #febd69; }
-        .product-card:hover { transform: translateY(-5px); transition: 0.3s; }
-    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-
-    <nav class="amazon-blue text-white p-4 sticky top-0 z-50 shadow-lg">
+<body class="bg-gray-100">
+    <nav class="bg-slate-900 text-white p-4 shadow-lg sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <div class="text-2xl font-black text-orange-400 tracking-tighter italic">
-                AMAZAN<span class="text-white text-xs font-light ml-1">.in</span>
-            </div>
-            <div class="flex items-center gap-4">
-                <a href="index.html" class="text-sm font-medium hover:text-orange-300">Home</a>
-                <a href="admin.html" class="bg-orange-400 text-black px-3 py-1 rounded-md font-bold text-xs uppercase tracking-wider">Admin</a>
-            </div>
+            <div class="text-2xl font-bold text-orange-400 italic">AMAZAN</div>
+            <span class="text-xs">Customer View</span>
         </div>
     </nav>
 
     <div class="max-w-6xl mx-auto p-4">
-        <h1 class="text-xl font-bold mb-6 border-l-4 border-orange-500 pl-3">Top Products For You</h1>
-        
         <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="col-span-full text-center py-20">
-                <p class="text-gray-500 animate-pulse">Dukan ka samaan load ho raha hai...</p>
             </div>
-        </div>
     </div>
 
-    <footer class="amazon-blue text-gray-400 text-center p-8 mt-10 border-t border-gray-700 text-sm">
-        <p>© 2026 Amazan Shop by Vinod. All Rights Reserved.</p>
-    </footer>
-
     <script>
-        // Aapka Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyClAPpjVxdjzPP1I1qskZ396-uCEmgNrQ",
             authDomain: "amazan-df63b.firebaseapp.com",
@@ -54,42 +31,27 @@
             messagingSenderId: "602713652429",
             appId: "1:602713652429:web:fb6940fcdeb990d89e3d84"
         };
-        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Database se live data khichna
         db.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             const listContainer = document.getElementById('product-list');
             listContainer.innerHTML = ""; 
-            
             if (data) {
                 for(let id in data) {
                     let p = data[id];
                     listContainer.innerHTML += `
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 product-card flex flex-col justify-between">
-                            <div>
-                                <div class="h-48 w-full flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden mb-4">
-                                    <img src="${p.img}" class="max-h-full max-w-full object-contain" alt="${p.name}">
-                                </div>
-                                <h3 class="font-bold text-gray-800 text-md line-clamp-2 mb-2 h-12">${p.name}</h3>
-                                <div class="flex items-center gap-2 mb-4">
-                                    <span class="text-2xl font-black text-gray-900">₹${p.price}</span>
-                                    <span class="text-xs text-gray-400 line-through italic">M.R.P: ₹${parseInt(p.price.replace(/,/g, '')) + 5000}</span>
-                                </div>
-                            </div>
-                            <button onclick="window.open('https://wa.me/919024276607?text=Hello Vinod, mujhe ye ${p.name} kharidna hai. Price: ₹${p.price}')" 
-                                    class="amazon-yellow w-full py-2.5 rounded-full font-bold shadow-md hover:bg-yellow-500 transition active:scale-95 flex items-center justify-center gap-2">
-                                <span>🟢 Order on WhatsApp</span>
+                        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
+                            <img src="${p.img}" class="h-40 w-full object-contain mb-4">
+                            <h3 class="font-bold text-gray-800">${p.name}</h3>
+                            <p class="text-xl font-black text-gray-900 mb-4">₹${p.price}</p>
+                            <button onclick="window.open('https://wa.me/919024276607?text=Hello Vinod, I want to buy ${p.name}')" 
+                                    class="bg-yellow-400 w-full py-2 rounded-full font-bold shadow-md hover:bg-yellow-500 transition">
+                                🟢 Order on WhatsApp
                             </button>
                         </div>`;
                 }
-            } else {
-                listContainer.innerHTML = `
-                    <div class="col-span-full text-center py-20">
-                        <p class="text-gray-400 font-medium">Dukan abhi khali hai! Admin panel se samaan add karein.</p>
-                    </div>`;
             }
         });
     </script>
