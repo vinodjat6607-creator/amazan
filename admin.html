@@ -165,3 +165,50 @@ function generate1000Products() {
         btn.disabled = false;
     });
 }
+<div class="mt-10 p-4 border-t border-gray-700">
+    <p class="text-gray-400 mb-2 text-sm">Testing ke liye 1000 products ek click mein add karein:</p>
+    <button id="bulkBtn" onclick="generate1000Products()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded shadow-lg transition">
+        🚀 Generate 1000 Magic Products
+    </button>
+</div>function generate1000Products() {
+    const categories = ["Electronics", "Fashion", "Home", "Grocery"];
+    const items = ["Pro", "Max", "Smart", "Ultra", "Classic", "Mini"];
+    const products = ["Phone", "Watch", "Shirt", "Shoes", "Laptop", "Bag", "Bottle", "T-Shirt"];
+    
+    let bulkData = {}; // Hum ek object banayenge
+
+    const btn = document.getElementById("bulkBtn");
+    btn.innerText = "Generating 1000 Products... Please Wait";
+    btn.disabled = true;
+
+    // 1 to 1000 ka loop
+    for (let i = 1; i <= 1000; i++) {
+        const randomCat = categories[Math.floor(Math.random() * categories.length)];
+        const randomName = items[Math.floor(Math.random() * items.length)] + " " + products[Math.floor(Math.random() * products.length)] + " " + i;
+        const randomPrice = Math.floor(Math.random() * 50000) + 199; // Price 199 se 50,000 ke beech
+        
+        // Har product ki apni unique photo (Lorem Picsum se)
+        const randomImg = `https://picsum.photos/seed/${i + 100}/300/300`;
+
+        // Unique ID ke saath product data
+        const newPostKey = db.ref().child('products').push().key;
+        bulkData['/products/' + newPostKey] = {
+            name: randomName,
+            category: randomCat,
+            price: randomPrice,
+            image: randomImg,
+            id: newPostKey
+        };
+    }
+
+    // Firebase database mein ek saath update karna (Faster than push)
+    db.ref().update(bulkData)
+    .then(() => {
+        alert("Badhai ho Vinod! Aapki shop mein 1000 products add ho gaye.");
+        btn.innerText = "1000 Products Added Successfully!";
+    })
+    .catch((error) => {
+        alert("Galti hui: " + error.message);
+        btn.disabled = false;
+    });
+}
