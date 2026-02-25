@@ -123,3 +123,45 @@ function bulkUpload() {
             .catch((err) => console.log("Error at item " + count + ": ", err));
     });
 }
+// --- AUTOMATIC 1000 PRODUCT GENERATOR ---
+function generate1000Products() {
+    const categories = ["Electronics", "Fashion", "Home", "Grocery", "Toys"];
+    const names = ["Premium", "Smart", "Ultra", "Classic", "Budget", "Luxury"];
+    const items = ["Device", "Watch", "Shirt", "Shoes", "Bag", "Bottle", "Lamp", "Chair"];
+    
+    let bulkArray = [];
+
+    // 1000 baar loop chalega
+    for (let i = 1; i <= 1000; i++) {
+        const randomCat = categories[Math.floor(Math.random() * categories.length)];
+        const randomName = names[Math.floor(Math.random() * names.length)] + " " + items[Math.floor(Math.random() * items.length)] + " " + i;
+        const randomPrice = Math.floor(Math.random() * (50000 - 100) + 100); // 100 se 50,000 ke beech price
+        
+        // Sample image (aap ise baad mein badal sakte hain)
+        const imgUrl = `https://picsum.photos/seed/${i}/300/300`; 
+
+        bulkArray.push({
+            name: randomName,
+            category: randomCat,
+            price: randomPrice,
+            image: imgUrl,
+            description: "Ye ek premium quality product hai jo Amazan shop par milta hai."
+        });
+    }
+
+    // Firebase mein upload karna
+    const btn = document.getElementById("bulkBtn");
+    btn.innerText = "Processing 1000 Items...";
+    btn.disabled = true;
+
+    // Firebase database mein 'products' node par pura array bhej rahe hain
+    db.ref("products").set(bulkArray) // 'set' ka matlab hai purana data hat jayega aur naya 1000 aa jayega
+    .then(() => {
+        alert("Badhai ho Vinod! 1000 products add ho gaye hain.");
+        btn.innerText = "1000 Products Added!";
+    })
+    .catch((err) => {
+        alert("Kuch galti hui: " + err.message);
+        btn.disabled = false;
+    });
+}
