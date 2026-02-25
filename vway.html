@@ -2,21 +2,21 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>V-Way Admin | Add Taxis</title>
+    <title>V-Way Admin | Taxi Manager</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-200 p-8">
-    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h2 class="text-2xl font-bold mb-6 text-yellow-600 italic underline">V-WAY ADMIN</h2>
-        <div class="space-y-4">
-            <input type="text" id="tName" placeholder="Gadi ka Naam" class="w-full border p-2">
-            <input type="text" id="tModel" placeholder="Gadi ka Model" class="w-full border p-2">
-            <input type="number" id="tPrice" placeholder="Price Per KM" class="w-full border p-2">
-            <input type="text" id="tPhone" placeholder="Driver No." class="w-full border p-2">
-            <input type="text" id="tImg" placeholder="Photo Link" class="w-full border p-2">
-            <button onclick="saveTaxi()" class="w-full bg-black text-white p-3 font-bold rounded">Add Taxi to V-Way</button>
+<body class="bg-gray-900 text-white p-5">
+    <div class="max-w-md mx-auto bg-gray-800 p-6 rounded-2xl shadow-2xl border border-yellow-500">
+        <h2 class="text-2xl font-black mb-6 text-yellow-500 italic tracking-tighter text-center">V-WAY ADMIN</h2>
+        <div class="space-y-4 text-black">
+            <input type="text" id="tName" placeholder="Gadi ka Naam (e.g. Swift)" class="w-full p-3 rounded-lg">
+            <input type="text" id="tModel" placeholder="Model (e.g. Sedan)" class="w-full p-3 rounded-lg">
+            <input type="number" id="tPrice" placeholder="Price per KM (₹)" class="w-full p-3 rounded-lg">
+            <input type="text" id="tPhone" placeholder="Driver WhatsApp No." class="w-full p-3 rounded-lg">
+            <input type="text" id="tImg" placeholder="Gadi ki Photo Link" class="w-full p-3 rounded-lg">
+            <button onclick="saveTaxi()" class="w-full bg-yellow-500 text-black p-4 font-bold rounded-lg hover:bg-yellow-400">ADD TAXI NOW</button>
         </div>
     </div>
 
@@ -40,9 +40,8 @@
                 phone: document.getElementById("tPhone").value,
                 img: document.getElementById("tImg").value
             };
-            // Yahan hum 'taxis' folder mein save kar rahe hain (Amazan se alag)
             db.ref("taxis").push(data).then(() => {
-                alert("Mubarak ho! V-Way mein gadi jud gayi.");
+                alert("Mubarak ho! Gadi V-Way App mein add ho gayi.");
                 location.reload();
             });
         }
