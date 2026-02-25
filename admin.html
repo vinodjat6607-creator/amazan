@@ -4,67 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Amazan Seller Central | Admin</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <script>
-        // --- 1. PASSWORD (PIN) SYSTEM ---
-        var pin = prompt("Amazan Admin - Pehle Secret PIN daalein:");
+        // 1. PIN PROTECTION
+        var pin = prompt("Dukan ka Secret PIN daalein (Default: 6607):");
         if (pin !== "6607") {
-            alert("Galat PIN! Aapko is page ki ijazat nahi hai.");
+            alert("Galat PIN! Aapko ijazat nahi hai.");
             window.location.href = "index.html";
         }
 
-        // --- 2. FIREBASE CONFIG ---
+        // 2. YOUR FIREBASE CONFIGURATION
+        // Vinod, ye details aapko apne Firebase Console -> Project Settings mein milengi
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            databaseURL: "YOUR_DATABASE_URL",
+            apiKey: "PASTE_YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
             projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
+
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
     </script>
 </head>
+
 <body class="bg-[#f0f2f2] font-sans">
 
-    <header class="bg-[#232f3e] text-white p-4 shadow-md">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-orange-400 flex items-center gap-2">
-                <i class="fa-solid fa-user-shield"></i> amazan<span class="text-white text-sm">seller central</span>
-            </h1>
-            <div class="flex gap-4 items-center">
-                <span class="text-xs text-green-400"><i class="fa-solid fa-circle text-[8px]"></i> Admin Logged In</span>
-                <a href="index.html" class="text-sm bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition">Go to Shop</a>
+    <header class="bg-[#232f3e] text-white p-4 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-orange-400">amazan<span class="text-white text-sm ml-2 italic font-light">seller central</span></h1>
+            <div class="flex gap-4">
+                <a href="index.html" class="bg-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-600 transition">Go To Shop</a>
             </div>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <div class="lg:col-span-1 space-y-6">
             <div class="bg-white p-6 rounded shadow-sm border border-gray-300">
-                <h2 class="text-lg font-bold mb-4 border-b pb-2 text-gray-700">Add New Product</h2>
+                <h2 class="text-lg font-bold mb-4 border-b pb-2 text-gray-800">Add New Product</h2>
                 <div class="space-y-3">
                     <input type="text" id="pName" placeholder="Product Name" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
-                    <select id="pCat" class="w-full border p-2 rounded text-sm outline-none bg-white">
+                    <select id="pCat" class="w-full border p-2 rounded text-sm bg-white outline-none">
                         <option value="Electronics">Electronics</option>
                         <option value="Fashion">Fashion</option>
                         <option value="Home">Home & Kitchen</option>
-                        <option value="Grocery">Grocery</option>
                     </select>
                     <input type="number" id="pPrice" placeholder="Price (₹)" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
-                    <input type="text" id="pImg" placeholder="Image URL (Link)" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
-                    <button onclick="saveProduct()" class="w-full bg-[#f0c14b] border border-[#a88734] py-2 rounded shadow-sm font-medium hover:bg-[#f4d078] transition">Add to Inventory</button>
+                    <input type="text" id="pImg" placeholder="Image URL Link" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
+                    <button onclick="saveProduct()" class="w-full bg-[#f0c14b] border border-[#a88734] py-2 rounded shadow-sm font-bold hover:bg-[#f4d078]">Add to Database</button>
                 </div>
             </div>
 
             <div class="bg-[#fff4e5] p-6 rounded border border-orange-200 shadow-sm text-center">
-                <h2 class="text-orange-800 font-bold mb-1 text-sm uppercase tracking-wide">Bulk Management</h2>
-                <p class="text-[11px] text-orange-700 mb-4 font-medium italic underline">Hazaron products ek click mein add karein</p>
-                <button id="bulkBtn" onclick="generate1000()" class="w-full bg-orange-500 text-white py-3 rounded font-bold hover:bg-orange-600 transition shadow-md active:scale-95">
+                <h3 class="text-orange-800 font-bold mb-2">BULK ACTIONS</h3>
+                <p class="text-xs text-orange-700 mb-4 italic font-medium underline">1000 Products ek saath add karein</p>
+                <button id="bulkBtn" onclick="generate1000()" class="w-full bg-orange-500 text-white py-3 rounded font-bold hover:bg-orange-600 shadow-md">
                     🚀 Generate 1000 Products
                 </button>
             </div>
@@ -72,71 +77,57 @@
 
         <div class="lg:col-span-2">
             <div class="bg-white p-6 rounded shadow-sm border border-gray-300 min-h-[500px]">
-                <h2 class="text-lg font-bold mb-4 border-b pb-2 flex justify-between items-center text-gray-700">
-                    Live Customer Orders 
-                    <span id="orderCount" class="text-sm bg-blue-600 text-white px-3 py-1 rounded-full">0</span>
+                <h2 class="text-lg font-bold mb-4 border-b pb-2 flex justify-between items-center text-gray-800">
+                    Customer Orders 
+                    <span id="orderCount" class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs">0</span>
                 </h2>
-                <div id="orderList" class="space-y-4 overflow-y-auto max-h-[600px] pr-2">
-                    <div class="flex flex-col items-center justify-center py-20 text-gray-400">
-                        <i class="fa-solid fa-box-open text-5xl mb-2"></i>
-                        <p>Orders ka intezar hai...</p>
-                    </div>
+                <div id="orderList" class="space-y-4 max-h-[600px] overflow-y-auto">
+                    <p class="text-gray-400 text-center py-20">Koi order nahi mila...</p>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        // --- FUNCTION: SINGLE PRODUCT SAVE ---
+        // --- JAVASCRIPT FUNCTIONS ---
+
+        // 1. Save Single Product
         function saveProduct() {
             const name = document.getElementById("pName").value;
             const cat = document.getElementById("pCat").value;
             const price = document.getElementById("pPrice").value;
             const img = document.getElementById("pImg").value;
 
-            if(!name || !price || !img) {
-                alert("Bhai, saari details bhariye!");
-                return;
-            }
+            if(!name || !price || !img) { alert("Details fill karein!"); return; }
 
             db.ref("products").push({ name, category: cat, price, image: img })
-            .then(() => { 
-                alert("Product Godown mein add ho gaya!"); 
-                location.reload(); 
-            });
+            .then(() => { alert("Product Added!"); location.reload(); });
         }
 
-        // --- FUNCTION: 1000 PRODUCTS BATCH UPLOAD ---
+        // 2. Bulk Generate 1000
         function generate1000() {
             const btn = document.getElementById("bulkBtn");
-            btn.innerText = "Uploading 1000 Items..."; 
-            btn.disabled = true;
+            btn.innerText = "UPLOADING..."; btn.disabled = true;
 
             let bulkData = {};
-            const cats = ["Electronics", "Fashion", "Home", "Grocery"];
-
             for (let i = 1; i <= 1000; i++) {
                 const key = db.ref().child('products').push().key;
                 bulkData['/products/' + key] = {
-                    name: "Amazan Premium Item " + i,
-                    category: cats[Math.floor(Math.random() * cats.length)],
-                    price: Math.floor(Math.random() * 25000) + 299,
-                    image: `https://picsum.photos/seed/${i + 100}/300/300`,
+                    name: "Amazon Pro Item " + i,
+                    category: "Electronics",
+                    price: Math.floor(Math.random() * 20000) + 100,
+                    image: `https://picsum.photos/seed/${i+10}/400/400`,
                     id: key
                 };
             }
 
             db.ref().update(bulkData).then(() => {
-                alert("Mubarak ho! 1000 products live ho gaye.");
-                btn.innerText = "🚀 Generate 1000 Products"; 
-                btn.disabled = false;
-            }).catch(e => {
-                alert("Galti: " + e.message);
-                btn.disabled = false;
+                alert("1000 Items Added Successfully!");
+                btn.innerText = "🚀 Generate 1000 Products"; btn.disabled = false;
             });
         }
 
-        // --- FUNCTION: REAL-TIME ORDER LISTENER ---
+        // 3. Real-time Orders
         db.ref("orders").on("value", (snapshot) => {
             const list = document.getElementById("orderList");
             const countLabel = document.getElementById("orderCount");
@@ -147,26 +138,16 @@
                 counter++;
                 const order = child.val();
                 list.innerHTML += `
-                    <div class="border-l-4 border-orange-500 bg-white p-4 rounded shadow-sm border border-gray-200 hover:shadow-md transition">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <p class="text-[10px] text-gray-500 uppercase font-bold">Order ID: ${child.key}</p>
-                                <p class="font-bold text-gray-800"><i class="fa-solid fa-user text-xs"></i> Customer: ${order.customer || 'Unknown'}</p>
-                            </div>
-                            <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold uppercase">New Order</span>
-                        </div>
-                        <div class="text-sm text-gray-600 space-y-1 mb-3">
-                            ${order.items ? order.items.map(it => `• ${it.name} <span class="text-gray-400"> - ₹${it.price}</span>`).join('<br>') : 'No items'}
-                        </div>
-                        <div class="border-t pt-2 flex justify-between items-center">
-                            <p class="text-xs text-gray-400">${order.date || ''}</p>
-                            <p class="text-lg font-black text-green-700">${order.total}</p>
+                    <div class="border-l-4 border-orange-500 bg-gray-50 p-4 rounded shadow-sm mb-3">
+                        <p class="text-[10px] font-bold text-gray-500">ID: ${child.key}</p>
+                        <p class="font-bold text-gray-800">Customer: ${order.customer || 'Unknown'}</p>
+                        <div class="text-sm text-gray-600 border-t mt-2 pt-2">
+                             Items Total: <span class="text-red-700 font-bold">${order.total}</span>
                         </div>
                     </div>
                 `;
             });
             countLabel.innerText = counter;
-            if(counter === 0) list.innerHTML = "<div class='text-center py-20 text-gray-400'>Abhi tak koi order nahi aaya.</div>";
         });
     </script>
 </body>
