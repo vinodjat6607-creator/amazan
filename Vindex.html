@@ -3,50 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-Way | Premium Rides</title>
+    <title>V-Way | Book & Pay</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .uber-card { transition: all 0.3s ease; }
-        .uber-card:active { transform: scale(0.98); }
-    </style>
 </head>
-<body class="bg-white font-sans text-gray-900">
+<body class="bg-gray-50 font-sans">
 
     <nav class="bg-black text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-xl">
-        <h1 class="text-2xl font-black italic tracking-tighter text-yellow-500">V-WAY</h1>
-        <i class="fa-solid fa-bars text-xl text-yellow-500"></i>
+        <h1 class="text-2xl font-black italic text-yellow-500">V-WAY</h1>
+        <span class="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">LIVE</span>
     </nav>
 
-    <div class="p-5 bg-gray-50 border-b">
-        <h2 class="text-2xl font-bold mb-4 italic">Kahan Jana Hai?</h2>
-        
-        <div class="space-y-3">
-            <div class="relative">
-                <i class="fa-solid fa-circle-dot absolute left-3 top-3.5 text-blue-500 text-xs"></i>
-                <input type="text" id="pickup" placeholder="Pickup location (Kahan se?)" 
-                    class="w-full bg-gray-100 border-none p-3 pl-10 rounded-lg focus:ring-2 focus:ring-black">
-            </div>
-            <div class="relative">
-                <i class="fa-solid fa-square absolute left-3 top-3.5 text-black text-xs"></i>
-                <input type="text" id="drop" placeholder="Drop location (Kahan tak?)" 
-                    class="w-full bg-gray-100 border-none p-3 pl-10 rounded-lg focus:ring-2 focus:ring-black">
-            </div>
+    <div class="p-5 bg-white shadow-sm border-b">
+        <input type="text" id="pickup" placeholder="Kahan se? (Pickup)" class="w-full bg-gray-100 p-3 rounded-lg mb-2 outline-none">
+        <input type="text" id="drop" placeholder="Kahan tak? (Drop)" class="w-full bg-gray-100 p-3 rounded-lg outline-none">
+    </div>
+
+    <div id="taxiList" class="p-4 space-y-4"></div>
+
+    <div id="payModal" class="fixed inset-0 bg-black/80 hidden z-[100] flex items-center justify-center p-6">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
+            <h2 class="font-bold text-xl mb-2 text-blue-600">Complete Payment</h2>
+            <p class="text-gray-500 text-sm mb-4">Driver se baat karne ke liye ₹50 advance pay karein</p>
+            
+            <div class="bg-gray-100 p-4 rounded-xl mb-4">
+                <p class="text-xs text-gray-400">Scan or Pay to UPI ID:</p>
+                <p class="font-black text-lg select-all">vinodjat6607@ybl</p> </div>
+
+            <button onclick="confirmPayment()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mb-2">I HAVE PAID (Confirm)</button>
+            <button onclick="closeModal()" class="text-gray-400 text-sm underline">Cancel</button>
         </div>
     </div>
 
-    <main class="p-4">
-        <p class="text-sm font-bold text-gray-500 mb-4 uppercase tracking-widest">Available Rides</p>
-        
-        <div id="taxiList" class="space-y-3">
-            <div class="text-center py-10 text-gray-400">
-                <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
-                <p class="text-xs mt-2">Finding nearby drivers...</p>
-            </div>
-        </div>
-    </main>
+    <div id="whatsappBox" class="fixed bottom-10 left-6 right-6 hidden z-[110]">
+        <button id="finalWaBtn" class="w-full bg-[#25D366] text-white p-4 rounded-full font-bold shadow-2xl flex items-center justify-center gap-2 animate-bounce">
+            <i class="fa-brands fa-whatsapp text-2xl"></i> CHAT WITH DRIVER NOW
+        </button>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -60,47 +55,60 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function bookNow(driverPhone, taxiName) {
-            const from = document.getElementById('pickup').value;
-            const to = document.getElementById('drop').value;
+        let selectedDriver = "";
+        let selectedTaxi = "";
 
-            if(!from || !to) {
-                alert("Pehle Pickup aur Drop location bhariye!");
-                return;
-            }
-
-            // WhatsApp par details bhejega
-            const msg = `Namaste! Mujhe V-Way se gadi book karni hai.\n\nGadi: ${taxiName}\nSe: ${from}\nTak: ${to}`;
-            window.open(`https://wa.me/${driverPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        db.ref("taxis").on("value", (snapshot) => {
+        // Taxis dikhana
+        db.ref("taxis").on("value", (snap) => {
             const list = document.getElementById("taxiList");
             list.innerHTML = "";
-            const data = snapshot.val();
-
-            if(!data) {
-                list.innerHTML = "<p class='text-center text-gray-400'>No rides available right now.</p>";
-                return;
-            }
-
+            const data = snap.val();
             for(let id in data) {
                 const t = data[id];
                 list.innerHTML += `
-                    <div onclick="bookNow('${t.phone}', '${t.name}')" class="uber-card flex items-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-black cursor-pointer">
-                        <img src="${t.img || 'https://cdn-icons-png.flaticon.com/512/3202/3202926.png'}" class="w-16 h-16 object-contain">
-                        <div class="ml-4 flex-1">
-                            <h3 class="font-bold text-lg leading-tight">${t.name} <i class="fa-solid fa-user text-[10px] text-gray-400"></i>4</h3>
-                            <p class="text-xs text-gray-500">Fastest route, 2 min away</p>
+                    <div onclick="openPay('${t.phone}', '${t.name}')" class="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-4 active:scale-95 transition">
+                        <img src="${t.img}" class="w-20 h-14 object-cover rounded-lg border">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg">${t.name}</h3>
+                            <p class="text-xs text-green-600 font-bold italic">₹${t.price}/km - Advance Required</p>
                         </div>
-                        <div class="text-right">
-                            <p class="font-bold text-lg">₹${t.price}/km</p>
-                            <p class="text-[10px] text-green-600 font-bold uppercase italic">Best Price</p>
-                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300"></i>
                     </div>
                 `;
             }
         });
+
+        function openPay(phone, name) {
+            if(!document.getElementById('pickup').value || !document.getElementById('drop').value) {
+                alert("Pehle Pickup aur Drop location bhariye!"); return;
+            }
+            selectedDriver = phone;
+            selectedTaxi = name;
+            document.getElementById('payModal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('payModal').classList.add('hidden'); }
+
+        function confirmPayment() {
+            // Data Save in Admin Panel
+            const pickup = document.getElementById('pickup').value;
+            const drop = document.getElementById('drop').value;
+            
+            db.ref("bookings").push({
+                taxiName: selectedTaxi,
+                pickup: pickup,
+                drop: drop,
+                time: new Date().toLocaleString()
+            }).then(() => {
+                document.getElementById('payModal').classList.add('hidden');
+                document.getElementById('whatsappBox').classList.remove('hidden');
+                
+                const msg = `Namaste! Maine V-Way se payment kar di hai.\n\nGadi: ${selectedTaxi}\nPickup: ${pickup}\nDrop: ${drop}`;
+                document.getElementById('finalWaBtn').onclick = () => {
+                    window.open(`https://wa.me/${selectedDriver}?text=${encodeURIComponent(msg)}`, '_blank');
+                };
+            });
+        }
     </script>
 </body>
 </html>
