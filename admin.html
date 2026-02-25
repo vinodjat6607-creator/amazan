@@ -95,3 +95,31 @@
     </script>
 </body>
 </html>
+// Ye function aapke 1000 products ko ek click mein add karega
+function bulkUpload() {
+    // 1. Yahan aapke 1000 products ki list aayegi
+    const bigData = [
+        { name: "Product 1", price: 500, category: "Electronics", image: "link1" },
+        { name: "Product 2", price: 1200, category: "Fashion", image: "link2" },
+        // ... aise hi 1000 items yahan paste karein
+    ];
+
+    const btn = document.getElementById("bulkBtn");
+    btn.innerText = "Uploading " + bigData.length + " items...";
+    btn.disabled = true;
+
+    let count = 0;
+
+    // 2. Loop jo har product ko bari-bari add karega
+    bigData.forEach((item) => {
+        db.ref("products").push(item)
+            .then(() => {
+                count++;
+                if (count === bigData.length) {
+                    alert("Badhai ho! Saare 1000 products add ho gaye.");
+                    btn.innerText = "Upload Complete";
+                }
+            })
+            .catch((err) => console.log("Error at item " + count + ": ", err));
+    });
+}
