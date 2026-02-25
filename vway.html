@@ -2,40 +2,79 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>V-Way Admin Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Way Admin | Control Center</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-[#0f172a] p-5 text-white">
-    <div class="max-w-md mx-auto space-y-8">
-        
-        <div class="bg-[#1e293b] p-6 rounded-xl border border-yellow-500 shadow-2xl">
-            <h2 class="text-xl font-black mb-6 text-yellow-500 italic text-center uppercase">Add New Taxi</h2>
-            <div class="space-y-4">
-                <input type="text" id="tName" placeholder="Gadi ka Naam" class="w-full p-3 rounded bg-white text-black">
-                <input type="number" id="tPrice" placeholder="Price per KM" class="w-full p-3 rounded bg-white text-black">
-                <input type="text" id="tPhone" placeholder="Driver WhatsApp No." class="w-full p-3 rounded bg-white text-black">
+<body class="bg-[#0f172a] text-white p-4 font-sans">
+
+    <div class="max-w-md mx-auto space-y-6">
+        <div class="text-center">
+            <h1 class="text-3xl font-black italic text-yellow-500 tracking-tighter">V-WAY ADMIN</h1>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Business Management</p>
+        </div>
+
+        <div class="bg-[#1e293b] p-5 rounded-3xl border border-gray-700 shadow-2xl">
+            <h2 class="text-sm font-bold mb-4 text-yellow-500 uppercase"><i class="fa-solid fa-plus-circle mr-2"></i>Add New Taxi</h2>
+            <div class="space-y-3 text-black">
+                <input type="text" id="tName" placeholder="Gadi ka Naam (e.g. Swift)" class="w-full p-3 rounded-xl outline-none border-none">
                 
-                <div class="flex gap-2">
-                    <label for="camFile" class="flex-1 bg-blue-600 p-3 rounded-lg cursor-pointer text-[10px] font-bold text-center"><i class="fa-solid fa-camera mb-1"></i> CAMERA</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="tPrice" placeholder="Price/KM (₹)" class="p-3 rounded-xl outline-none">
+                    <input type="text" id="tPhone" placeholder="Driver WhatsApp" class="p-3 rounded-xl outline-none">
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="text-center">
+                        <label class="text-[9px] text-gray-400 font-bold">6H RATE</label>
+                        <input type="number" id="h6" placeholder="₹" class="w-full p-2 rounded-lg outline-none">
+                    </div>
+                    <div class="text-center">
+                        <label class="text-[9px] text-gray-400 font-bold">12H RATE</label>
+                        <input type="number" id="h12" placeholder="₹" class="w-full p-2 rounded-lg outline-none">
+                    </div>
+                    <div class="text-center">
+                        <label class="text-[9px] text-gray-400 font-bold">24H RATE</label>
+                        <input type="number" id="h24" placeholder="₹" class="w-full p-2 rounded-lg outline-none">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 text-white pt-2">
+                    <label for="camFile" class="flex-1 bg-blue-600 p-3 rounded-xl text-center text-[10px] font-bold cursor-pointer uppercase shadow-lg hover:bg-blue-700">
+                        <i class="fa-solid fa-camera mb-1 block text-lg"></i> Camera
+                    </label>
                     <input type="file" id="camFile" accept="image/*" capture="environment" class="hidden">
-                    <label for="galFile" class="flex-1 bg-green-600 p-3 rounded-lg cursor-pointer text-[10px] font-bold text-center"><i class="fa-solid fa-image mb-1"></i> GALLERY</label>
+                    
+                    <label for="galFile" class="flex-1 bg-green-600 p-3 rounded-xl text-center text-[10px] font-bold cursor-pointer uppercase shadow-lg hover:bg-green-700">
+                        <i class="fa-solid fa-image mb-1 block text-lg"></i> Gallery
+                    </label>
                     <input type="file" id="galFile" accept="image/*" class="hidden">
                 </div>
-                <img id="imgPreview" class="w-full h-32 hidden rounded object-cover border-2 border-yellow-500">
-                <button onclick="saveTaxi()" class="w-full bg-yellow-500 text-black p-4 font-bold rounded-lg uppercase">Add Taxi</button>
+                
+                <img id="imgPreview" class="w-full h-32 hidden rounded-2xl object-cover border-2 border-yellow-500 mt-2 shadow-inner">
+                
+                <button id="saveBtn" onclick="saveTaxi()" class="w-full bg-yellow-500 text-black p-4 font-black rounded-2xl uppercase mt-2 shadow-xl active:scale-95 transition-all">
+                    SAVE & GO LIVE
+                </button>
             </div>
         </div>
 
-        <div class="bg-[#1e293b] p-6 rounded-xl border border-blue-500 shadow-2xl">
-            <h2 class="text-xl font-black mb-6 text-blue-400 italic text-center uppercase">Ride History</h2>
-            <div id="bookingList" class="space-y-3 max-h-80 overflow-y-auto">
-                <p class="text-center text-gray-500 text-sm italic">No bookings yet...</p>
+        <div class="bg-[#1e293b] p-5 rounded-3xl border border-gray-700">
+            <h2 class="text-sm font-bold mb-4 text-blue-400 uppercase"><i class="fa-solid fa-car-side mr-2"></i>Live Fleet Management</h2>
+            <div id="taxiListAdmin" class="space-y-3">
+                <p class="text-center text-gray-500 text-xs italic">Loading taxis...</p>
             </div>
         </div>
 
+        <div class="bg-[#1e293b] p-5 rounded-3xl border border-gray-700">
+            <h2 class="text-sm font-bold mb-4 text-green-400 uppercase"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Ride History</h2>
+            <div id="bookingList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                <p class="text-center text-gray-500 text-xs italic">No bookings yet...</p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -51,47 +90,89 @@
         const db = firebase.database();
         let base64Image = "";
 
-        // Photo Handling
+        // Photo Preview
         function handleFile(e) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                base64Image = reader.result;
-                document.getElementById('imgPreview').src = base64Image;
-                document.getElementById('imgPreview').classList.remove('hidden');
+            reader.onloadend = () => { 
+                base64Image = reader.result; 
+                document.getElementById('imgPreview').src = base64Image; 
+                document.getElementById('imgPreview').classList.remove('hidden'); 
             };
             reader.readAsDataURL(e.target.files[0]);
         }
         document.getElementById('camFile').addEventListener('change', handleFile);
         document.getElementById('galFile').addEventListener('change', handleFile);
 
+        // Save Taxi
         function saveTaxi() {
+            const btn = document.getElementById('saveBtn');
             const data = {
                 name: document.getElementById("tName").value,
                 price: document.getElementById("tPrice").value,
+                h6: document.getElementById("h6").value || 0,
+                h12: document.getElementById("h12").value || 0,
+                h24: document.getElementById("h24").value || 0,
                 phone: document.getElementById("tPhone").value,
-                img: base64Image
+                img: base64Image,
+                hidden: false
             };
-            db.ref("taxis").push(data).then(() => { alert("Gadi Add Ho Gayi!"); location.reload(); });
+
+            if(!data.name || !base64Image) { alert("Photo aur Naam zaroori hai!"); return; }
+
+            btn.disabled = true; btn.innerText = "UPLOADING...";
+            db.ref("taxis").push(data).then(() => { alert("Gadi add ho gayi!"); location.reload(); });
         }
 
-        // Real-time Booking History & Alerts
-        db.ref("bookings").on("value", (snapshot) => {
-            const list = document.getElementById("bookingList");
-            list.innerHTML = "";
-            const data = snapshot.val();
+        // Fleet List with Hide/Show
+        db.ref("taxis").on("value", (snap) => {
+            const list = document.getElementById("taxiListAdmin"); list.innerHTML = "";
+            const data = snap.val();
+            for(let id in data) {
+                const t = data[id];
+                const statusColor = t.hidden ? 'bg-red-500/20 text-red-500 border-red-500/50' : 'bg-green-500/20 text-green-500 border-green-500/50';
+                const statusIcon = t.hidden ? 'fa-eye-slash' : 'fa-eye';
+                
+                list.innerHTML += `
+                    <div class="bg-[#243147] p-3 rounded-2xl flex items-center gap-3 border border-gray-700">
+                        <img src="${t.img}" class="w-12 h-12 rounded-lg object-cover">
+                        <div class="flex-1 text-xs">
+                            <p class="font-bold text-gray-200">${t.name}</p>
+                            <p class="text-[8px] text-gray-500 italic">Price/KM: ₹${t.price}</p>
+                        </div>
+                        <button onclick="toggleVisibility('${id}', ${t.hidden || false})" 
+                            class="px-3 py-2 rounded-xl border text-[9px] font-black uppercase flex items-center gap-2 ${statusColor} transition-all active:scale-90">
+                            <i class="fa-solid ${statusIcon}"></i> ${t.hidden ? 'HIDDEN' : 'VISIBLE'}
+                        </button>
+                    </div>`;
+            }
+        });
+
+        function toggleVisibility(id, currentStatus) {
+            db.ref("taxis/" + id).update({ hidden: !currentStatus });
+        }
+
+        // Ride History List
+        db.ref("bookings").on("value", (snap) => {
+            const list = document.getElementById("bookingList"); list.innerHTML = "";
+            const data = snap.val();
             if(data) {
-                // Nayi booking par sound alert (optional)
                 for(let id in data) {
                     const b = data[id];
                     list.innerHTML = `
-                        <div class="bg-gray-800 p-3 rounded border-l-4 border-yellow-500 text-xs">
-                            <p class="font-bold text-yellow-500 uppercase">${b.taxiName}</p>
-                            <p class="mt-1"><span class="text-gray-400">From:</span> ${b.pickup}</p>
-                            <p><span class="text-gray-400">To:</span> ${b.drop}</p>
-                            <p class="text-[10px] text-gray-500 mt-2">${b.time || ''}</p>
-                        </div>
-                    ` + list.innerHTML;
+                        <div class="bg-gray-800/50 p-3 rounded-2xl border-l-4 border-yellow-500 mb-2 shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <p class="text-xs font-black text-yellow-500 uppercase italic">${b.taxi}</p>
+                                <p class="text-[9px] text-gray-500">${b.time}</p>
+                            </div>
+                            <p class="text-[10px] mt-1 text-gray-300"><i class="fa-solid fa-location-arrow mr-1"></i> ${b.pickup} <i class="fa-solid fa-arrow-right mx-1"></i> ${b.drop}</p>
+                            <div class="flex justify-between items-center mt-2 border-t border-gray-700 pt-2">
+                                <span class="text-[9px] bg-white/10 px-2 py-0.5 rounded text-gray-400">${b.package || 'KM Wise'}</span>
+                                <span class="text-xs font-black text-green-400">₹${b.amount}</span>
+                            </div>
+                        </div>` + list.innerHTML;
                 }
+            } else {
+                list.innerHTML = "<p class='text-center text-gray-500 text-xs italic py-4'>No history found.</p>";
             }
         });
     </script>
