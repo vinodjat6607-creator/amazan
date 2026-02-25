@@ -3,52 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazan Admin - Add Products</title>
+    <title>Amazan Seller Central | Admin</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-white font-sans p-6">
-
-    <div class="max-w-xl mx-auto bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
-        <h2 class="text-3xl font-bold mb-6 text-orange-400 flex items-center gap-2">
-            <i class="fa-solid fa-plus-circle"></i> Naya Product Add Karein
-        </h2>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm mb-1 text-gray-400">Product Ka Naam</label>
-                <input type="text" id="pName" placeholder="e.g. iPhone 15 Pro" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-orange-500 outline-none">
-            </div>
-
-            <div>
-                <label class="block text-sm mb-1 text-gray-400">Category</label>
-                <select id="pCat" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-orange-500 outline-none cursor-pointer">
-                    <option value="Electronics">Electronics</option>
-                    <option value="Fashion">Fashion</option>
-                    <option value="Home">Home & Kitchen</option>
-                    <option value="Grocery">Grocery</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm mb-1 text-gray-400">Price (₹)</label>
-                <input type="number" id="pPrice" placeholder="e.g. 79999" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-orange-500 outline-none">
-            </div>
-
-            <div>
-                <label class="block text-sm mb-1 text-gray-400">Image URL (Direct Link)</label>
-                <input type="text" id="pImg" placeholder="https://m.media-amazon.com/images/..." class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-orange-500 outline-none">
-            </div>
-
-            <button onclick="saveToFirebase()" id="btnSave" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded transition-all mt-4">
-                Database Mein Add Karein
-            </button>
-        </div>
-    </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <script>
-        // --- APNI FIREBASE CONFIG YAHAN DAALEIN ---
+        // --- 1. PASSWORD (PIN) SYSTEM ---
+        var pin = prompt("Amazan Admin - Pehle Secret PIN daalein:");
+        if (pin !== "6607") {
+            alert("Galat PIN! Aapko is page ki ijazat nahi hai.");
+            window.location.href = "index.html";
+        }
+
+        // --- 2. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             databaseURL: "YOUR_DATABASE_URL",
@@ -57,8 +26,69 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+    </script>
+</head>
+<body class="bg-[#f0f2f2] font-sans">
 
-        function saveToFirebase() {
+    <header class="bg-[#232f3e] text-white p-4 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-orange-400 flex items-center gap-2">
+                <i class="fa-solid fa-user-shield"></i> amazan<span class="text-white text-sm">seller central</span>
+            </h1>
+            <div class="flex gap-4 items-center">
+                <span class="text-xs text-green-400"><i class="fa-solid fa-circle text-[8px]"></i> Admin Logged In</span>
+                <a href="index.html" class="text-sm bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition">Go to Shop</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white p-6 rounded shadow-sm border border-gray-300">
+                <h2 class="text-lg font-bold mb-4 border-b pb-2 text-gray-700">Add New Product</h2>
+                <div class="space-y-3">
+                    <input type="text" id="pName" placeholder="Product Name" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
+                    <select id="pCat" class="w-full border p-2 rounded text-sm outline-none bg-white">
+                        <option value="Electronics">Electronics</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Home">Home & Kitchen</option>
+                        <option value="Grocery">Grocery</option>
+                    </select>
+                    <input type="number" id="pPrice" placeholder="Price (₹)" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
+                    <input type="text" id="pImg" placeholder="Image URL (Link)" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
+                    <button onclick="saveProduct()" class="w-full bg-[#f0c14b] border border-[#a88734] py-2 rounded shadow-sm font-medium hover:bg-[#f4d078] transition">Add to Inventory</button>
+                </div>
+            </div>
+
+            <div class="bg-[#fff4e5] p-6 rounded border border-orange-200 shadow-sm text-center">
+                <h2 class="text-orange-800 font-bold mb-1 text-sm uppercase tracking-wide">Bulk Management</h2>
+                <p class="text-[11px] text-orange-700 mb-4 font-medium italic underline">Hazaron products ek click mein add karein</p>
+                <button id="bulkBtn" onclick="generate1000()" class="w-full bg-orange-500 text-white py-3 rounded font-bold hover:bg-orange-600 transition shadow-md active:scale-95">
+                    🚀 Generate 1000 Products
+                </button>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded shadow-sm border border-gray-300 min-h-[500px]">
+                <h2 class="text-lg font-bold mb-4 border-b pb-2 flex justify-between items-center text-gray-700">
+                    Live Customer Orders 
+                    <span id="orderCount" class="text-sm bg-blue-600 text-white px-3 py-1 rounded-full">0</span>
+                </h2>
+                <div id="orderList" class="space-y-4 overflow-y-auto max-h-[600px] pr-2">
+                    <div class="flex flex-col items-center justify-center py-20 text-gray-400">
+                        <i class="fa-solid fa-box-open text-5xl mb-2"></i>
+                        <p>Orders ka intezar hai...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- FUNCTION: SINGLE PRODUCT SAVE ---
+        function saveProduct() {
             const name = document.getElementById("pName").value;
             const cat = document.getElementById("pCat").value;
             const price = document.getElementById("pPrice").value;
@@ -69,146 +99,75 @@
                 return;
             }
 
-            const btn = document.getElementById("btnSave");
-            btn.innerText = "Saving...";
+            db.ref("products").push({ name, category: cat, price, image: img })
+            .then(() => { 
+                alert("Product Godown mein add ho gaya!"); 
+                location.reload(); 
+            });
+        }
+
+        // --- FUNCTION: 1000 PRODUCTS BATCH UPLOAD ---
+        function generate1000() {
+            const btn = document.getElementById("bulkBtn");
+            btn.innerText = "Uploading 1000 Items..."; 
             btn.disabled = true;
 
-            // Firebase Mein Push Karna
-            db.ref("products").push({
-                name: name,
-                category: cat,
-                price: price,
-                image: img
-            }).then(() => {
-                alert("Product Successfully Add Ho Gaya!");
-                // Form Clear Karna
-                document.getElementById("pName").value = "";
-                document.getElementById("pPrice").value = "";
-                document.getElementById("pImg").value = "";
-                btn.innerText = "Database Mein Add Karein";
+            let bulkData = {};
+            const cats = ["Electronics", "Fashion", "Home", "Grocery"];
+
+            for (let i = 1; i <= 1000; i++) {
+                const key = db.ref().child('products').push().key;
+                bulkData['/products/' + key] = {
+                    name: "Amazan Premium Item " + i,
+                    category: cats[Math.floor(Math.random() * cats.length)],
+                    price: Math.floor(Math.random() * 25000) + 299,
+                    image: `https://picsum.photos/seed/${i + 100}/300/300`,
+                    id: key
+                };
+            }
+
+            db.ref().update(bulkData).then(() => {
+                alert("Mubarak ho! 1000 products live ho gaye.");
+                btn.innerText = "🚀 Generate 1000 Products"; 
                 btn.disabled = false;
-            }).catch(err => {
-                alert("Error: " + err.message);
+            }).catch(e => {
+                alert("Galti: " + e.message);
                 btn.disabled = false;
             });
         }
+
+        // --- FUNCTION: REAL-TIME ORDER LISTENER ---
+        db.ref("orders").on("value", (snapshot) => {
+            const list = document.getElementById("orderList");
+            const countLabel = document.getElementById("orderCount");
+            list.innerHTML = "";
+            let counter = 0;
+
+            snapshot.forEach(child => {
+                counter++;
+                const order = child.val();
+                list.innerHTML += `
+                    <div class="border-l-4 border-orange-500 bg-white p-4 rounded shadow-sm border border-gray-200 hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <p class="text-[10px] text-gray-500 uppercase font-bold">Order ID: ${child.key}</p>
+                                <p class="font-bold text-gray-800"><i class="fa-solid fa-user text-xs"></i> Customer: ${order.customer || 'Unknown'}</p>
+                            </div>
+                            <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold uppercase">New Order</span>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1 mb-3">
+                            ${order.items ? order.items.map(it => `• ${it.name} <span class="text-gray-400"> - ₹${it.price}</span>`).join('<br>') : 'No items'}
+                        </div>
+                        <div class="border-t pt-2 flex justify-between items-center">
+                            <p class="text-xs text-gray-400">${order.date || ''}</p>
+                            <p class="text-lg font-black text-green-700">${order.total}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            countLabel.innerText = counter;
+            if(counter === 0) list.innerHTML = "<div class='text-center py-20 text-gray-400'>Abhi tak koi order nahi aaya.</div>";
+        });
     </script>
 </body>
 </html>
-// Ye function aapke 1000 products ko ek click mein add karega
-function bulkUpload() {
-    // 1. Yahan aapke 1000 products ki list aayegi
-    const bigData = [
-        { name: "Product 1", price: 500, category: "Electronics", image: "link1" },
-        { name: "Product 2", price: 1200, category: "Fashion", image: "link2" },
-        // ... aise hi 1000 items yahan paste karein
-    ];
-
-    const btn = document.getElementById("bulkBtn");
-    btn.innerText = "Uploading " + bigData.length + " items...";
-    btn.disabled = true;
-
-    let count = 0;
-
-    // 2. Loop jo har product ko bari-bari add karega
-    bigData.forEach((item) => {
-        db.ref("products").push(item)
-            .then(() => {
-                count++;
-                if (count === bigData.length) {
-                    alert("Badhai ho! Saare 1000 products add ho gaye.");
-                    btn.innerText = "Upload Complete";
-                }
-            })
-            .catch((err) => console.log("Error at item " + count + ": ", err));
-    });
-}
-// --- AUTOMATIC 1000 PRODUCT GENERATOR ---
-function generate1000Products() {
-    const categories = ["Electronics", "Fashion", "Home", "Grocery", "Toys"];
-    const names = ["Premium", "Smart", "Ultra", "Classic", "Budget", "Luxury"];
-    const items = ["Device", "Watch", "Shirt", "Shoes", "Bag", "Bottle", "Lamp", "Chair"];
-    
-    let bulkArray = [];
-
-    // 1000 baar loop chalega
-    for (let i = 1; i <= 1000; i++) {
-        const randomCat = categories[Math.floor(Math.random() * categories.length)];
-        const randomName = names[Math.floor(Math.random() * names.length)] + " " + items[Math.floor(Math.random() * items.length)] + " " + i;
-        const randomPrice = Math.floor(Math.random() * (50000 - 100) + 100); // 100 se 50,000 ke beech price
-        
-        // Sample image (aap ise baad mein badal sakte hain)
-        const imgUrl = `https://picsum.photos/seed/${i}/300/300`; 
-
-        bulkArray.push({
-            name: randomName,
-            category: randomCat,
-            price: randomPrice,
-            image: imgUrl,
-            description: "Ye ek premium quality product hai jo Amazan shop par milta hai."
-        });
-    }
-
-    // Firebase mein upload karna
-    const btn = document.getElementById("bulkBtn");
-    btn.innerText = "Processing 1000 Items...";
-    btn.disabled = true;
-
-    // Firebase database mein 'products' node par pura array bhej rahe hain
-    db.ref("products").set(bulkArray) // 'set' ka matlab hai purana data hat jayega aur naya 1000 aa jayega
-    .then(() => {
-        alert("Badhai ho Vinod! 1000 products add ho gaye hain.");
-        btn.innerText = "1000 Products Added!";
-    })
-    .catch((err) => {
-        alert("Kuch galti hui: " + err.message);
-        btn.disabled = false;
-    });
-}
-<div class="mt-10 p-4 border-t border-gray-700">
-    <p class="text-gray-400 mb-2 text-sm">Testing ke liye 1000 products ek click mein add karein:</p>
-    <button id="bulkBtn" onclick="generate1000Products()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded shadow-lg transition">
-        🚀 Generate 1000 Magic Products
-    </button>
-</div>function generate1000Products() {
-    const categories = ["Electronics", "Fashion", "Home", "Grocery"];
-    const items = ["Pro", "Max", "Smart", "Ultra", "Classic", "Mini"];
-    const products = ["Phone", "Watch", "Shirt", "Shoes", "Laptop", "Bag", "Bottle", "T-Shirt"];
-    
-    let bulkData = {}; // Hum ek object banayenge
-
-    const btn = document.getElementById("bulkBtn");
-    btn.innerText = "Generating 1000 Products... Please Wait";
-    btn.disabled = true;
-
-    // 1 to 1000 ka loop
-    for (let i = 1; i <= 1000; i++) {
-        const randomCat = categories[Math.floor(Math.random() * categories.length)];
-        const randomName = items[Math.floor(Math.random() * items.length)] + " " + products[Math.floor(Math.random() * products.length)] + " " + i;
-        const randomPrice = Math.floor(Math.random() * 50000) + 199; // Price 199 se 50,000 ke beech
-        
-        // Har product ki apni unique photo (Lorem Picsum se)
-        const randomImg = `https://picsum.photos/seed/${i + 100}/300/300`;
-
-        // Unique ID ke saath product data
-        const newPostKey = db.ref().child('products').push().key;
-        bulkData['/products/' + newPostKey] = {
-            name: randomName,
-            category: randomCat,
-            price: randomPrice,
-            image: randomImg,
-            id: newPostKey
-        };
-    }
-
-    // Firebase database mein ek saath update karna (Faster than push)
-    db.ref().update(bulkData)
-    .then(() => {
-        alert("Badhai ho Vinod! Aapki shop mein 1000 products add ho gaye.");
-        btn.innerText = "1000 Products Added Successfully!";
-    })
-    .catch((error) => {
-        alert("Galti hui: " + error.message);
-        btn.disabled = false;
-    });
-}
