@@ -11,75 +11,84 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map { height: 200px; border-radius: 20px; margin-bottom: 15px; display: none; }
-        .suggestions { position: absolute; background: white; width: 100%; z-index: 100; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; }
-        .suggestion-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; color: #333; }
+        /* LOADING SCREEN ANIMATION */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .car-loader { font-size: 50px; color: #eab308; animation: move 1.5s infinite linear; }
+        @keyframes move {
+            0% { transform: translateX(-50px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(50px); opacity: 0; }
+        }
+        .loading-text { color: white; font-weight: 900; margin-top: 15px; letter-spacing: 3px; font-style: italic; }
+
+        #map { height: 180px; border-radius: 20px; display: none; margin: 10px 0; border: 2px solid #eee; }
+        .suggestions { background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: absolute; width: 100%; z-index: 100; max-height: 150px; overflow: auto; margin-top: 5px; }
+        .suggestion-item { padding: 12px; border-bottom: 1px solid #f8f8f8; font-size: 12px; cursor: pointer; color: #333; font-weight: 600; }
     </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-gray-100 font-sans overflow-x-hidden">
 
-    <nav class="bg-black text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-xl">
+    <div id="loader">
+        <i class="fa-solid fa-car-side car-loader"></i>
+        <div class="loading-text">V-WAY IS STARTING...</div>
+    </div>
+
+    <nav class="bg-black text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
         <h1 class="text-2xl font-black italic text-yellow-500 tracking-tighter">V-WAY</h1>
-        <div id="kmBadge" class="hidden bg-yellow-500 text-black px-3 py-1 rounded-full text-[10px] font-bold animate-bounce">
-            <span id="autoKM">0</span> KM Found
-        </div>
+        <div class="text-[9px] bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">FAST MODE</div>
     </nav>
 
     <div id="step1" class="p-4 space-y-4">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Available Rides</p>
-        <div id="taxiList" class="grid grid-cols-1 gap-3"></div>
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Choose Your Ride</p>
+        <div id="taxiList" class="space-y-3">
+            <div class="bg-white p-4 rounded-3xl h-20 animate-pulse"></div>
+            <div class="bg-white p-4 rounded-3xl h-20 animate-pulse"></div>
+        </div>
     </div>
 
     <div id="step2" class="fixed inset-0 bg-white hidden z-[60] p-6 overflow-y-auto">
-        <button onclick="location.reload()" class="mb-4 text-gray-400 font-bold"><i class="fa-solid fa-arrow-left"></i> BACK</button>
-        <h2 id="selectedTaxiTitle" class="text-2xl font-black mb-6 italic text-gray-800 underline decoration-yellow-500">Booking Details</h2>
-        
-        <div class="space-y-4">
-            <div class="flex gap-2 bg-gray-100 p-1 rounded-2xl">
-                <button id="btnKM" onclick="setMode('KM')" class="flex-1 p-3 rounded-xl font-bold text-xs bg-black text-white shadow-lg transition-all">KM WISE</button>
-                <button id="btnHR" onclick="setMode('HR')" class="flex-1 p-3 rounded-xl font-bold text-xs text-gray-500 transition-all">HOURLY</button>
-            </div>
-
-            <div class="relative">
-                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-4 shadow-inner">
-                    <div class="relative">
-                        <i class="fa-solid fa-location-crosshairs text-blue-500 absolute top-4 left-0"></i>
-                        <input type="text" id="pickup" oninput="searchLoc('pickup')" placeholder="Pickup Point (Kahan se?)" class="w-full bg-transparent pl-7 py-2 outline-none font-bold text-sm border-b">
-                        <div id="pickupSuggest" class="suggestions hidden"></div>
-                    </div>
-                    <div class="relative">
-                        <i class="fa-solid fa-map-pin text-red-500 absolute top-4 left-0"></i>
-                        <input type="text" id="drop" oninput="searchLoc('drop')" placeholder="Drop Point (Kahan tak?)" class="w-full bg-transparent pl-7 py-2 outline-none font-bold text-sm">
-                        <div id="dropSuggest" class="suggestions hidden"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="map"></div>
-
-            <div id="hrInput" class="hidden grid grid-cols-3 gap-2">
-                <button onclick="selectHR(6)" id="h6btn" class="p-3 border-2 rounded-xl text-xs font-bold">6h</button>
-                <button onclick="selectHR(12)" id="h12btn" class="p-3 border-2 rounded-xl text-xs font-bold">12h</button>
-                <button onclick="selectHR(24)" id="h24btn" class="p-3 border-2 rounded-xl text-xs font-bold">24h</button>
-            </div>
-
-            <div class="bg-black text-white p-6 rounded-[35px] text-center shadow-2xl">
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Estimated Fare</p>
-                <p class="text-5xl font-black text-yellow-500">₹<span id="totalFare">0</span></p>
-                <p id="kmInfo" class="text-[10px] text-gray-500 mt-2 font-bold"></p>
-            </div>
-
-            <button onclick="goToStep3()" class="w-full bg-yellow-500 text-black p-5 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all">BOOK & PAY NOW</button>
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="location.reload()" class="font-black text-gray-400 text-sm uppercase"><i class="fa-solid fa-chevron-left mr-1"></i> Back</button>
+            <span class="text-xs font-bold text-yellow-600 bg-yellow-100 px-3 py-1 rounded-full">Booking In Progress</span>
         </div>
+
+        <div class="bg-gray-50 p-5 rounded-[30px] space-y-4 border border-gray-100 shadow-inner relative">
+            <div class="relative">
+                <i class="fa-solid fa-circle-dot absolute top-4 left-3 text-green-500 text-xs"></i>
+                <input type="text" id="pickup" oninput="searchLoc('pickup')" placeholder="Select Pickup Point" class="w-full bg-white p-3 pl-8 rounded-xl border-none outline-none text-sm shadow-sm font-bold">
+                <div id="pickupSuggest" class="suggestions hidden"></div>
+            </div>
+            <div class="relative">
+                <i class="fa-solid fa-location-pin absolute top-4 left-3 text-red-500 text-xs"></i>
+                <input type="text" id="drop" oninput="searchLoc('drop')" placeholder="Select Destination" class="w-full bg-white p-3 pl-8 rounded-xl border-none outline-none text-sm shadow-sm font-bold">
+                <div id="dropSuggest" class="suggestions hidden"></div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="bg-black text-white p-7 rounded-[40px] mt-6 text-center shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-yellow-500/10 rounded-full -mr-10 -mt-10"></div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Total Estimated Fare</p>
+            <p class="text-5xl font-black text-yellow-500">₹<span id="totalFare">0</span></p>
+            <p id="kmInfo" class="text-[9px] text-gray-500 mt-2 font-black italic"></p>
+        </div>
+
+        <button onclick="goToStep3()" class="w-full bg-yellow-500 text-black p-5 rounded-[25px] font-black text-lg mt-6 shadow-xl active:scale-95 transition-all">BOOK RIDE NOW</button>
     </div>
 
-    <div id="step3" class="fixed inset-0 bg-white hidden z-[70] p-6 text-center">
-        <h2 class="text-2xl font-black mb-8 italic">SCAN TO PAY</h2>
-        <div class="bg-white p-4 inline-block border-[12px] border-black rounded-[50px] shadow-2xl mb-8">
+    <div id="step3" class="fixed inset-0 bg-white hidden z-[70] p-6 text-center flex flex-col justify-center">
+        <h2 class="text-2xl font-black mb-8 italic text-gray-800">SCAN & PAY</h2>
+        <div id="upiQRBox" class="p-4 border-[12px] border-black rounded-[50px] inline-block mb-8 shadow-2xl bg-white">
             <img id="upiQR" src="" class="w-64 h-64">
         </div>
-        <button onclick="notifyAdmin()" class="w-full bg-[#25D366] text-white p-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3">
-            <i class="fa-brands fa-whatsapp text-2xl"></i> SEND PAYMENT SCREENSHOT
+        <p class="text-[10px] font-bold text-gray-400 mb-6 uppercase">Please send screenshot after payment</p>
+        <button onclick="notifyAdmin()" class="w-full bg-[#25D366] text-white p-5 rounded-[25px] font-black flex items-center justify-center gap-3 text-lg shadow-xl">
+            <i class="fa-brands fa-whatsapp text-2xl"></i> I HAVE PAID
         </button>
     </div>
 
@@ -94,14 +103,16 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let taxiData = {}, map, coords = {p:null, d:null};
 
-        let taxiData = {};
-        let mode = 'KM';
-        let selectedHRVal = 0;
-        let coords = { p: null, d: null };
-        let map, markerP, markerD;
+        // Hide Loader after 2 seconds
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+            }, 2000);
+        };
 
-        // Load Taxis (Only Visible ones)
+        // LOAD TAXIS (Fast Optimized)
         db.ref("taxis").on("value", (snap) => {
             const list = document.getElementById("taxiList"); list.innerHTML = "";
             const data = snap.val();
@@ -109,23 +120,22 @@
                 const t = data[id];
                 if(t.hidden) continue;
                 list.innerHTML += `
-                    <div onclick='openStep2(${JSON.stringify(t)})' class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4 active:scale-95 transition-all">
-                        <img src="${t.img}" class="w-16 h-16 object-cover rounded-2xl border-2 border-white shadow-md">
-                        <div class="flex-1">
-                            <h3 class="font-black text-gray-900">${t.name}</h3>
-                            <p class="text-[9px] font-bold text-green-600 uppercase italic">₹${t.price}/km | Available</p>
-                        </div>
-                        <i class="fa-solid fa-circle-chevron-right text-gray-200 text-2xl"></i>
-                    </div>`;
+                <div onclick='openStep2(${JSON.stringify(t)})' class="bg-white p-4 rounded-[30px] shadow-sm flex items-center gap-4 border border-gray-50 active:scale-95 transition-all">
+                    <img src="${t.img}" class="w-16 h-16 object-cover rounded-[20px] shadow-inner" loading="lazy">
+                    <div class="flex-1">
+                        <h3 class="font-black text-gray-800">${t.name}</h3>
+                        <p class="text-[10px] text-green-600 font-bold uppercase italic tracking-tighter">Available • ₹${t.price}/KM</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-200"></i>
+                </div>`;
             }
         });
 
         function openStep2(t) {
             taxiData = t;
-            document.getElementById('selectedTaxiTitle').innerText = t.name;
             document.getElementById('step2').classList.remove('hidden');
             if(!map) {
-                map = L.map('map').setView([26.9124, 75.7873], 13); // Default Jaipur
+                map = L.map('map', {zoomControl: false}).setView([26.9124, 75.7873], 11);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             }
         }
@@ -133,94 +143,45 @@
         async function searchLoc(type) {
             const query = document.getElementById(type).value;
             if(query.length < 3) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=in`);
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=in&limit=4`);
             const data = await res.json();
-            const suggestDiv = document.getElementById(type + 'Suggest');
-            suggestDiv.innerHTML = "";
-            suggestDiv.classList.remove('hidden');
+            const div = document.getElementById(type + 'Suggest');
+            div.innerHTML = ""; div.classList.remove('hidden');
             data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "suggestion-item";
-                div.innerText = item.display_name;
-                div.onclick = () => selectLoc(type, item.lat, item.lon, item.display_name);
-                suggestDiv.appendChild(div);
+                const s = document.createElement('div');
+                s.className = "suggestion-item"; 
+                s.innerText = item.display_name.split(',')[0] + ", " + item.display_name.split(',')[1];
+                s.onclick = () => {
+                    document.getElementById(type).value = item.display_name;
+                    div.classList.add('hidden');
+                    coords[type === 'pickup' ? 'p' : 'd'] = [item.lat, item.lon];
+                    document.getElementById('map').style.display = 'block';
+                    calculateKM();
+                };
+                div.appendChild(s);
             });
-        }
-
-        function selectLoc(type, lat, lon, name) {
-            document.getElementById(type).value = name;
-            document.getElementById(type + 'Suggest').classList.add('hidden');
-            coords[type === 'pickup' ? 'p' : 'd'] = [lat, lon];
-            document.getElementById('map').style.display = 'block';
-            
-            if(type === 'pickup') {
-                if(markerP) map.removeLayer(markerP);
-                markerP = L.marker([lat, lon]).addTo(map);
-            } else {
-                if(markerD) map.removeLayer(markerD);
-                markerD = L.marker([lat, lon]).addTo(map);
-            }
-            map.setView([lat, lon], 12);
-            calculateKM();
         }
 
         function calculateKM() {
             if(coords.p && coords.d) {
-                const distance = map.distance(coords.p, coords.d) / 1000;
-                const finalKM = (distance * 1.2).toFixed(1); // 20% extra for road turns
-                document.getElementById('autoKM').innerText = finalKM;
-                document.getElementById('kmBadge').classList.remove('hidden');
-                document.getElementById('kmInfo').innerText = `Based on Google-style Map Routing (${finalKM} KM)`;
-                calcPrice(finalKM);
-            }
-        }
-
-        function setMode(m) {
-            mode = m;
-            document.getElementById('hrInput').classList.toggle('hidden', m === 'KM');
-            document.getElementById('btnKM').className = m === 'KM' ? 'flex-1 p-3 rounded-xl font-bold text-xs bg-black text-white shadow-lg' : 'flex-1 p-3 rounded-xl font-bold text-xs text-gray-500';
-            document.getElementById('btnHR').className = m === 'HR' ? 'flex-1 p-3 rounded-xl font-bold text-xs bg-black text-white shadow-lg' : 'flex-1 p-3 rounded-xl font-bold text-xs text-gray-500';
-            calculateKM();
-        }
-
-        function selectHR(h) {
-            selectedHRVal = taxiData['h'+h];
-            ['h6btn','h12btn','h24btn'].forEach(id => document.getElementById(id).classList.replace('bg-black', 'text-gray-400'));
-            document.getElementById('h'+h+'btn').classList.add('bg-black', 'text-white');
-            document.getElementById('totalFare').innerText = selectedHRVal;
-        }
-
-        function calcPrice(km) {
-            if(mode === 'KM') {
-                document.getElementById('totalFare').innerText = Math.round(km * taxiData.price);
+                const dist = (map.distance(coords.p, coords.d) / 1000 * 1.25).toFixed(1);
+                document.getElementById('kmInfo').innerText = `SMART ROUTE: ${dist} KM CALCULATED`;
+                document.getElementById('totalFare').innerText = Math.round(dist * taxiData.price);
+                map.fitBounds([coords.p, coords.d], {padding: [30, 30]});
             }
         }
 
         function goToStep3() {
             const amt = document.getElementById('totalFare').innerText;
-            if(amt <= 0) { alert("Pehle location select karein!"); return; }
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=upi://pay?pa=vinodjat88612@ibl%26am=${amt}%26cu=INR%26pn=V-WAY`;
-            document.getElementById('upiQR').src = qrUrl;
+            if(amt <= 0) return alert("Please select locations first!");
+            document.getElementById('upiQR').src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=upi://pay?pa=vinodjat88612@ibl%26am=${amt}%26cu=INR%26pn=V-WAY`;
             document.getElementById('step3').classList.remove('hidden');
         }
 
         function notifyAdmin() {
             const fare = document.getElementById('totalFare').innerText;
-            const km = document.getElementById('autoKM').innerText;
-            const pickup = document.getElementById('pickup').value;
-            const drop = document.getElementById('drop').value;
-
-            db.ref("bookings").push({
-                taxi: taxiData.name,
-                amount: fare,
-                km: km,
-                pickup: pickup,
-                drop: drop,
-                time: new Date().toLocaleString()
-            });
-
-            const msg = `🚕 *V-WAY SMART BOOKING*\n\n👤 *Gadi:* ${taxiData.name}\n📍 *From:* ${pickup}\n🏁 *To:* ${drop}\n📏 *Distance:* ${km} KM\n💰 *Total:* ₹${fare}\n\n✅ *Status:* Paid. Check Screenshot.`;
-            window.open(`https://wa.me/919024276607?text=${encodeURIComponent(msg)}`, '_blank');
+            const msg = `🚕 *V-WAY RIDE BOOKED*\n\n👤 *Gadi:* ${taxiData.name}\n📍 *From:* ${document.getElementById('pickup').value}\n🏁 *To:* ${document.getElementById('drop').value}\n💰 *Fare:* ₹${fare}\n\n✅ Payment screen attached below.`;
+            window.open(`https://wa.me/919024276607?text=${encodeURIComponent(msg)}`);
         }
     </script>
 </body>
