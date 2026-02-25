@@ -3,104 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazan Admin - Secret Access</title>
+    <title>Amazan Admin - Add Products</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script>
-        // --- PASSWORD SYSTEM ---
-        // Yahan aap apna PIN badal sakte hain (Abhi 6607 hai)
-        var pin = prompt("Dukan ka Secret PIN daalein:");
-        if (pin !== "6607") { 
-            alert("Galat PIN! Aapko ijazat nahi hai.");
-            window.location.href = "index.html"; 
-        }
-    </script>
 </head>
-<body class="bg-gray-900 text-white font-sans">
+<body class="bg-gray-900 text-white font-sans p-6">
 
-    <nav class="bg-black p-4 border-b border-orange-500">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-black text-orange-500 italic">AMAZAN <span class="text-white text-sm">ADMIN</span></h1>
-            <a href="index.html" class="text-xs bg-gray-700 px-3 py-1 rounded">View Shop</a>
-        </div>
-    </nav>
+    <div class="max-w-xl mx-auto bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 text-orange-400 flex items-center gap-2">
+            <i class="fa-solid fa-plus-circle"></i> Naya Product Add Karein
+        </h2>
 
-    <div class="max-w-4xl mx-auto p-6">
-        <div class="bg-gray-800 p-6 rounded-2xl shadow-xl mb-10 border border-gray-700">
-            <h2 class="text-lg font-bold mb-4 text-orange-400">Naya Product Add Karein</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" id="pName" placeholder="Product ka Naam" class="bg-gray-700 p-3 rounded-lg outline-none focus:ring-2 ring-orange-500">
-                <input type="text" id="pPrice" placeholder="Price (e.g. 49,999)" class="bg-gray-700 p-3 rounded-lg outline-none focus:ring-2 ring-orange-500">
-                <input type="text" id="pImg" placeholder="Image Link (URL)" class="bg-gray-700 p-3 rounded-lg outline-none focus:ring-2 ring-orange-500">
-                <button onclick="addProduct()" class="bg-orange-500 text-black font-bold py-3 rounded-lg hover:bg-orange-400 transition">Add To Shop</button>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm mb-1 text-gray-400">Product Ka Naam</label>
+                <input type="text" id="pName" placeholder="e.g. iPhone 15 Pro" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-orange-500 outline-none">
             </div>
-        </div>
 
-        <h2 class="text-lg font-bold mb-4 text-gray-400">Dukan ka Samaan (Edit/Delete)</h2>
-        <div id="admin-product-list" class="space-y-4">
+            <div>
+                <label class="block text-sm mb-1 text-gray-400">Category</label>
+                <select id="pCat" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-orange-500 outline-none cursor-pointer">
+                    <option value="Electronics">Electronics</option>
+                    <option value="Fashion">Fashion</option>
+                    <option value="Home">Home & Kitchen</option>
+                    <option value="Grocery">Grocery</option>
+                </select>
             </div>
+
+            <div>
+                <label class="block text-sm mb-1 text-gray-400">Price (₹)</label>
+                <input type="number" id="pPrice" placeholder="e.g. 79999" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-orange-500 outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm mb-1 text-gray-400">Image URL (Direct Link)</label>
+                <input type="text" id="pImg" placeholder="https://m.media-amazon.com/images/..." class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:border-orange-500 outline-none">
+            </div>
+
+            <button onclick="saveToFirebase()" id="btnSave" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded transition-all mt-4">
+                Database Mein Add Karein
+            </button>
+        </div>
     </div>
 
     <script>
-        // Aapka Firebase Configuration
+        // --- APNI FIREBASE CONFIG YAHAN DAALEIN ---
         const firebaseConfig = {
-            apiKey: "AIzaSyClAPpjVxdjzPP1I1qskZ396-uCEmgNrQ",
-            authDomain: "amazan-df63b.firebaseapp.com",
-            databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com",
-            projectId: "amazan-df63b",
-            storageBucket: "amazan-df63b.firebasestorage.app",
-            messagingSenderId: "602713652429",
-            appId: "1:602713652429:web:fb6940fcdeb990d89e3d84"
+            apiKey: "YOUR_API_KEY",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            appId: "YOUR_APP_ID"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Product Add karne ka function
-        function addProduct() {
-            const name = document.getElementById('pName').value;
-            const price = document.getElementById('pPrice').value;
-            const img = document.getElementById('pImg').value;
+        function saveToFirebase() {
+            const name = document.getElementById("pName").value;
+            const cat = document.getElementById("pCat").value;
+            const price = document.getElementById("pPrice").value;
+            const img = document.getElementById("pImg").value;
 
-            if(name && price && img) {
-                db.ref('products').push({ name, price, img });
-                alert("Samaan Add ho gaya!");
-                document.getElementById('pName').value = "";
-                document.getElementById('pPrice').value = "";
-                document.getElementById('pImg').value = "";
-            } else {
-                alert("Saari jankari bhariye!");
+            if(!name || !price || !img) {
+                alert("Bhai, saari details bhariye!");
+                return;
             }
+
+            const btn = document.getElementById("btnSave");
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            // Firebase Mein Push Karna
+            db.ref("products").push({
+                name: name,
+                category: cat,
+                price: price,
+                image: img
+            }).then(() => {
+                alert("Product Successfully Add Ho Gaya!");
+                // Form Clear Karna
+                document.getElementById("pName").value = "";
+                document.getElementById("pPrice").value = "";
+                document.getElementById("pImg").value = "";
+                btn.innerText = "Database Mein Add Karein";
+                btn.disabled = false;
+            }).catch(err => {
+                alert("Error: " + err.message);
+                btn.disabled = false;
+            });
         }
-
-        // Product Delete karne ka function
-        function deleteProduct(id) {
-            if(confirm("Kya aap ise dukan se hatana chahte hain?")) {
-                db.ref('products/' + id).remove();
-            }
-        }
-
-        // Live Product List dikhana
-        db.ref('products').on('value', (snapshot) => {
-            const data = snapshot.val();
-            const list = document.getElementById('admin-product-list');
-            list.innerHTML = "";
-            for(let id in data) {
-                let p = data[id];
-                list.innerHTML += `
-                    <div class="bg-gray-800 p-4 rounded-xl flex items-center justify-between border border-gray-700">
-                        <div class="flex items-center gap-4">
-                            <img src="${p.img}" class="w-12 h-12 object-cover rounded">
-                            <div>
-                                <p class="font-bold text-sm">${p.name}</p>
-                                <p class="text-orange-400 text-xs font-bold">₹${p.price}</p>
-                            </div>
-                        </div>
-                        <button onclick="deleteProduct('${id}')" class="bg-red-500/20 text-red-500 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition text-xs font-bold">Delete</button>
-                    </div>`;
-            }
-        });
     </script>
 </body>
 </html>
