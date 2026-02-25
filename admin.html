@@ -13,22 +13,22 @@
 
     <script>
         // 1. PIN PROTECTION
-        var pin = prompt("Dukan ka Secret PIN daalein (Default: 6607):");
+        var pin = prompt("Amazan Admin PIN daalein (6607):");
         if (pin !== "6607") {
-            alert("Galat PIN! Aapko ijazat nahi hai.");
+            alert("Galat PIN!");
             window.location.href = "index.html";
         }
 
-        // 2. YOUR FIREBASE CONFIGURATION
-        // Vinod, ye details aapko apne Firebase Console -> Project Settings mein milengi
+        // 2. YOUR CONFIG (Added by Gemini)
         const firebaseConfig = {
-            apiKey: "PASTE_YOUR_API_KEY_HERE",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyCLApPjVXdJzPP1Il1qskZ396-uCEmgWrQ",
+            authDomain: "amazan-df63b.firebaseapp.com",
+            databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com",
+            projectId: "amazan-df63b",
+            storageBucket: "amazan-df63b.firebasestorage.app",
+            messagingSenderId: "602713652429",
+            appId: "1:602713652429:web:f86940fcdeb990d09e3d84",
+            measurementId: "G-M9J0D9B6Q3"
         };
 
         // Initialize Firebase
@@ -36,15 +36,12 @@
         const db = firebase.database();
     </script>
 </head>
-
 <body class="bg-[#f0f2f2] font-sans">
 
     <header class="bg-[#232f3e] text-white p-4 sticky top-0 z-50 shadow-md">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold text-orange-400">amazan<span class="text-white text-sm ml-2 italic font-light">seller central</span></h1>
-            <div class="flex gap-4">
-                <a href="index.html" class="bg-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-600 transition">Go To Shop</a>
-            </div>
+            <a href="index.html" class="bg-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-600 transition">Go to Shop</a>
         </div>
     </header>
 
@@ -60,15 +57,14 @@
                         <option value="Fashion">Fashion</option>
                         <option value="Home">Home & Kitchen</option>
                     </select>
-                    <input type="number" id="pPrice" placeholder="Price (₹)" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
-                    <input type="text" id="pImg" placeholder="Image URL Link" class="w-full border p-2 rounded text-sm outline-none focus:ring-1 focus:ring-orange-500">
-                    <button onclick="saveProduct()" class="w-full bg-[#f0c14b] border border-[#a88734] py-2 rounded shadow-sm font-bold hover:bg-[#f4d078]">Add to Database</button>
+                    <input type="number" id="pPrice" placeholder="Price (₹)" class="w-full border p-2 rounded text-sm outline-none">
+                    <input type="text" id="pImg" placeholder="Image URL Link" class="w-full border p-2 rounded text-sm outline-none">
+                    <button onclick="saveProduct()" class="w-full bg-[#f0c14b] border border-[#a88734] py-2 rounded shadow-sm font-bold hover:bg-[#f4d078]">Inventory Mein Daalein</button>
                 </div>
             </div>
 
-            <div class="bg-[#fff4e5] p-6 rounded border border-orange-200 shadow-sm text-center">
-                <h3 class="text-orange-800 font-bold mb-2">BULK ACTIONS</h3>
-                <p class="text-xs text-orange-700 mb-4 italic font-medium underline">1000 Products ek saath add karein</p>
+            <div class="bg-[#fff4e5] p-6 rounded border border-orange-200 text-center">
+                <h3 class="text-orange-800 font-bold mb-2 uppercase text-xs">Bulk Management</h3>
                 <button id="bulkBtn" onclick="generate1000()" class="w-full bg-orange-500 text-white py-3 rounded font-bold hover:bg-orange-600 shadow-md">
                     🚀 Generate 1000 Products
                 </button>
@@ -78,19 +74,17 @@
         <div class="lg:col-span-2">
             <div class="bg-white p-6 rounded shadow-sm border border-gray-300 min-h-[500px]">
                 <h2 class="text-lg font-bold mb-4 border-b pb-2 flex justify-between items-center text-gray-800">
-                    Customer Orders 
+                    Live Customer Orders 
                     <span id="orderCount" class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs">0</span>
                 </h2>
                 <div id="orderList" class="space-y-4 max-h-[600px] overflow-y-auto">
-                    <p class="text-gray-400 text-center py-20">Koi order nahi mila...</p>
+                    <p class="text-gray-400 text-center py-20 italic">Abhi koi order nahi aaya hai...</p>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        // --- JAVASCRIPT FUNCTIONS ---
-
         // 1. Save Single Product
         function saveProduct() {
             const name = document.getElementById("pName").value;
@@ -101,33 +95,35 @@
             if(!name || !price || !img) { alert("Details fill karein!"); return; }
 
             db.ref("products").push({ name, category: cat, price, image: img })
-            .then(() => { alert("Product Added!"); location.reload(); });
+            .then(() => { alert("Product Save Ho Gaya!"); location.reload(); });
         }
 
-        // 2. Bulk Generate 1000
+        // 2. Generate 1000 Products (Super Fast)
         function generate1000() {
             const btn = document.getElementById("bulkBtn");
-            btn.innerText = "UPLOADING..."; btn.disabled = true;
+            btn.innerText = "UPLOADING 1000 ITEMS..."; btn.disabled = true;
 
             let bulkData = {};
+            const cats = ["Electronics", "Fashion", "Home", "Grocery"];
+
             for (let i = 1; i <= 1000; i++) {
                 const key = db.ref().child('products').push().key;
                 bulkData['/products/' + key] = {
-                    name: "Amazon Pro Item " + i,
-                    category: "Electronics",
-                    price: Math.floor(Math.random() * 20000) + 100,
-                    image: `https://picsum.photos/seed/${i+10}/400/400`,
+                    name: "Amazan Pro Item " + i,
+                    category: cats[Math.floor(Math.random() * cats.length)],
+                    price: Math.floor(Math.random() * 45000) + 199,
+                    image: `https://picsum.photos/seed/${i+300}/400/400`,
                     id: key
                 };
             }
 
             db.ref().update(bulkData).then(() => {
-                alert("1000 Items Added Successfully!");
+                alert("Mubarak ho Vinod! 1000 items add ho gaye.");
                 btn.innerText = "🚀 Generate 1000 Products"; btn.disabled = false;
-            });
+            }).catch(e => { alert("Error: " + e.message); btn.disabled = false; });
         }
 
-        // 3. Real-time Orders
+        // 3. Listen for Orders
         db.ref("orders").on("value", (snapshot) => {
             const list = document.getElementById("orderList");
             const countLabel = document.getElementById("orderCount");
@@ -139,15 +135,14 @@
                 const order = child.val();
                 list.innerHTML += `
                     <div class="border-l-4 border-orange-500 bg-gray-50 p-4 rounded shadow-sm mb-3">
-                        <p class="text-[10px] font-bold text-gray-500">ID: ${child.key}</p>
-                        <p class="font-bold text-gray-800">Customer: ${order.customer || 'Unknown'}</p>
-                        <div class="text-sm text-gray-600 border-t mt-2 pt-2">
-                             Items Total: <span class="text-red-700 font-bold">${order.total}</span>
-                        </div>
+                        <p class="text-[10px] font-bold text-gray-500">ORDER ID: ${child.key}</p>
+                        <p class="font-bold text-gray-800">Customer: ${order.customer || 'Vinod Ji'}</p>
+                        <p class="text-sm text-red-700 font-bold mt-1">Total: ₹${order.total || '0'}</p>
                     </div>
                 `;
             });
             countLabel.innerText = counter;
+            if(counter === 0) list.innerHTML = "<p class='text-center py-20 text-gray-400'>Orders ka intezar hai...</p>";
         });
     </script>
 </body>
