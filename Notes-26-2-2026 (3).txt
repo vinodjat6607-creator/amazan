@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>V-Way Admin | Add Taxis</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-200 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-yellow-600 italic underline">V-WAY ADMIN</h2>
+        <div class="space-y-4">
+            <input type="text" id="tName" placeholder="Gadi ka Naam" class="w-full border p-2">
+            <input type="text" id="tModel" placeholder="Gadi ka Model" class="w-full border p-2">
+            <input type="number" id="tPrice" placeholder="Price Per KM" class="w-full border p-2">
+            <input type="text" id="tPhone" placeholder="Driver No." class="w-full border p-2">
+            <input type="text" id="tImg" placeholder="Photo Link" class="w-full border p-2">
+            <button onclick="saveTaxi()" class="w-full bg-black text-white p-3 font-bold rounded">Add Taxi to V-Way</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLApPjVXdJzPP1Il1qskZ396-uCEmgWrQ",
+            authDomain: "amazan-df63b.firebaseapp.com",
+            databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com",
+            projectId: "amazan-df63b",
+            storageBucket: "amazan-df63b.firebasestorage.app",
+            appId: "1:602713652429:web:f86940fcdeb990d09e3d84"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function saveTaxi() {
+            const data = {
+                name: document.getElementById("tName").value,
+                model: document.getElementById("tModel").value,
+                price: document.getElementById("tPrice").value,
+                phone: document.getElementById("tPhone").value,
+                img: document.getElementById("tImg").value
+            };
+            // Yahan hum 'taxis' folder mein save kar rahe hain (Amazan se alag)
+            db.ref("taxis").push(data).then(() => {
+                alert("Mubarak ho! V-Way mein gadi jud gayi.");
+                location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
