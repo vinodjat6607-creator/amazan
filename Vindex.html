@@ -3,162 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>V-Way | Mobile</title>
+    <title>V-Way | Real-time Rides</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        /* Mobile Screen Lock */
-        body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%; 
-            overflow: hidden; position: fixed; font-family: sans-serif;
-        }
-
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; position: fixed; width: 100%; font-family: sans-serif; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
-
-        /* Top Overlay UI */
-        .top-ui {
-            position: absolute; top: 45px; left: 0; right: 0; z-index: 20;
-            display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
-        }
-        .circle-btn {
-            background: white; width: 44px; height: 44px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12); color: #333;
-        }
-        .location-pill {
-            background: white; padding: 10px 18px; border-radius: 50px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12); display: flex; align-items: center;
-            font-size: 13px; font-weight: 700; max-width: 180px;
-        }
-
-        /* Bottom Floating Panel */
-        .bottom-panel {
-            position: absolute; bottom: 0; left: 0; right: 0; z-index: 30;
-            background: white; border-top-left-radius: 28px; border-top-right-radius: 28px;
-            box-shadow: 0 -10px 25px rgba(0,0,0,0.1);
-        }
-
-        /* Ola Style Search Bar */
-        .search-box {
-            background: white; border-radius: 50px; padding: 14px 22px;
-            margin: -30px 20px 20px 20px; display: flex; align-items: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: 2px solid #10b981;
-            position: relative; z-index: 40;
-        }
-
-        /* Horizontal Scroll Services */
-        .services-grid {
-            display: flex; gap: 12px; overflow-x: auto; padding: 5px 20px 20px 20px;
-            scrollbar-width: none;
-        }
-        .services-grid::-webkit-scrollbar { display: none; }
-
-        .service-card {
-            min-width: 85px; flex: 0 0 auto; background: #f8fafc;
-            border-radius: 18px; padding: 12px 5px; text-align: center;
-            border: 1px solid #f1f5f9; transition: all 0.2s;
-        }
-        .service-card:active { background: #f0fdf4; transform: scale(0.95); }
-        .service-card img { width: 42px; height: auto; margin: 0 auto 6px auto; }
-        .service-card span { font-size: 11px; font-weight: 700; color: #475569; display: block; }
-
-        /* Bottom Tab Bar */
-        .tab-bar {
-            display: flex; justify-content: space-around; align-items: center;
-            padding: 12px 0 28px 0; border-top: 1px solid #f1f5f9;
-        }
-        .tab-item { text-align: center; color: #94a3b8; flex: 1; }
-        .tab-item.active { color: #000; }
-        .tab-item i { font-size: 22px; margin-bottom: 4px; display: block; }
-        .tab-item p { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bottom-sheet { position: absolute; bottom: 0; width: 100%; z-index: 50; background: white; border-top-left-radius: 30px; border-top-right-radius: 30px; transition: 0.3s; box-shadow: 0 -10px 20px rgba(0,0,0,0.1); }
+        .search-trigger { border: 2px solid #10b981; margin: -25px 20px 20px 20px; background: white; border-radius: 50px; padding: 14px 20px; display: flex; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; }
+        #searchPage { position: fixed; inset: 0; background: white; z-index: 100; display: none; flex-direction: column; }
+        .input-group { background: #f3f4f6; border-radius: 12px; padding: 5px 15px; display: flex; align-items: center; margin-top: 15px; }
+        .location-item { padding: 15px 20px; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; gap: 15px; }
+        .service-card { min-width: 85px; text-align: center; padding: 10px; border-radius: 15px; background: #f8fafc; border: 1px solid #f1f5f9; cursor: pointer; }
+        .service-card.active { border-color: #10b981; background: #f0fdf4; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
 
-    <div class="top-ui">
-        <div class="circle-btn"><i class="fa-solid fa-bars-staggered"></i></div>
-        <div class="location-pill">
-            <i class="fa-solid fa-location-dot text-green-600 mr-2"></i>
-            <span class="truncate">Kaladera, Rajasthan</span>
+    <div class="absolute top-12 left-0 right-0 z-10 px-4 flex justify-between items-center">
+        <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg"><i class="fa-solid fa-bars"></i></div>
+        <div class="bg-white px-4 py-2 rounded-full shadow-lg text-xs font-bold flex items-center gap-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div> Prabhu dayal meena...
         </div>
-        <div class="circle-btn"><i class="fa-solid fa-user-ninja"></i></div>
+        <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg"><i class="fa-regular fa-heart"></i></div>
     </div>
 
-    <div class="bottom-panel">
-        
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass text-gray-400 mr-3 text-lg"></i>
-            <span class="text-gray-500 font-semibold">Where are you going?</span>
+    <div class="bottom-sheet" id="mainPanel">
+        <div class="search-trigger" onclick="openSearch()">
+            <i class="fa-solid fa-magnifying-glass text-gray-400 mr-3"></i>
+            <span id="destText" class="text-gray-900 font-bold truncate">Enter Destination</span>
         </div>
 
-        <div class="services-grid">
-            <div class="service-card">
-                <img src="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
-                <span>Outstation</span>
+        <div class="flex gap-3 overflow-x-auto px-5 pb-6 no-scrollbar" id="serviceList">
+            <div class="service-card active" onclick="selectService('Bike', 10)">
+                <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png" class="w-10 mx-auto">
+                <p class="text-[10px] font-bold mt-1">Bike</p>
             </div>
-            <div class="service-card">
-                <img src="https://cdn-icons-png.flaticon.com/512/741/741407.png">
-                <span>Rentals</span>
+            <div class="service-card" onclick="selectService('Car', 15)">
+                <img src="https://cdn-icons-png.flaticon.com/512/741/741407.png" class="w-10 mx-auto">
+                <p class="text-[10px] font-bold mt-1">Car</p>
             </div>
-            <div class="service-card">
-                <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png">
-                <span>Bike</span>
-            </div>
-            <div class="service-card">
-                <img src="https://cdn-icons-png.flaticon.com/512/649/649730.png">
-                <span>Parcel</span>
-            </div>
-            <div class="service-card">
-                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111244.png">
-                <span>Auto</span>
+            <div class="service-card" onclick="selectService('Parcel', 8)">
+                <img src="https://cdn-icons-png.flaticon.com/512/649/649730.png" class="w-10 mx-auto">
+                <p class="text-[10px] font-bold mt-1">Parcel</p>
             </div>
         </div>
 
-        <div class="tab-bar">
-            <div class="tab-item active">
-                <i class="fa-solid fa-house-chimney"></i>
-                <p>Home</p>
+        <div id="fareSection" class="hidden px-5 pb-4">
+            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl mb-4">
+                <div>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase">Estimated Fare</p>
+                    <p class="text-2xl font-black text-green-600">₹<span id="priceVal">0</span></p>
+                </div>
+                <div class="text-right text-[10px] font-bold text-gray-400">
+                    <p id="distVal">0 KM</p>
+                </div>
             </div>
-            <div class="tab-item">
-                <i class="fa-solid fa-box-archive"></i>
-                <p>Parcel</p>
+            <button onclick="bookRide()" class="w-full bg-black text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all">Book This Ride</button>
+        </div>
+
+        <div class="flex justify-around py-4 border-t border-gray-100 pb-8">
+            <div class="text-center text-black"><i class="fa-solid fa-house-chimney text-xl"></i><p class="text-[10px] font-black">Home</p></div>
+            <div class="text-center text-gray-400"><i class="fa-solid fa-box text-xl"></i><p class="text-[10px] font-black">Orders</p></div>
+            <div class="text-center text-gray-400"><i class="fa-solid fa-wallet text-xl"></i><p class="text-[10px] font-black">Wallet</p></div>
+        </div>
+    </div>
+
+    <div id="searchPage">
+        <div class="p-5 border-bottom">
+            <div class="flex items-center gap-4">
+                <i class="fa-solid fa-arrow-left text-lg" onclick="closeSearch()"></i>
+                <h2 class="font-bold">Set Destination</h2>
             </div>
-            <div class="tab-item">
-                <i class="fa-solid fa-bolt-lightning"></i>
-                <p>Electric</p>
-            </div>
-            <div class="tab-item">
-                <i class="fa-solid fa-wallet"></i>
-                <p>Payment</p>
+            <div class="input-group">
+                <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                <input type="text" id="destInput" oninput="handleSearch(this.value)" placeholder="Search destination..." class="flex-1 bg-transparent outline-none text-sm font-bold py-2">
             </div>
         </div>
+        <div id="resultsList" class="flex-1 overflow-y-auto"></div>
     </div>
 
     <script>
-        // Map Initialization (Mobile Optimized)
-        var map = L.map('map', {
-            zoomControl: false,
-            attributionControl: false,
-            dragging: true,
-            tap: true
-        }).setView([26.9124, 75.7873], 15);
+        // --- 1. CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLApPjVXdJzPP1Il1qskZ396-uCEmgWrQ",
+            databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com",
+            projectId: "amazan-df63b",
+            appId: "1:602713652429:web:f86940fcdeb990d09e3d84"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // Modern Map Tiles (CartoDB Positron - Looks cleaner for apps)
+        let map = L.map('map', { zoomControl:false, attributionControl:false }).setView([26.9124, 75.7873], 14);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // Marker for Current Location
-        var marker = L.circleMarker([26.9124, 75.7873], {
-            radius: 8,
-            fillColor: "#000",
-            color: "#fff",
-            weight: 3,
-            opacity: 1,
-            fillOpacity: 1
-        }).addTo(map);
+        let selectedService = { name: 'Bike', price: 10 };
+        let tripData = { distance: 0, fare: 0, destination: "" };
+
+        // --- 2. SEARCH & UI LOGIC ---
+        function openSearch() { document.getElementById('searchPage').style.display = 'flex'; document.getElementById('destInput').focus(); }
+        function closeSearch() { document.getElementById('searchPage').style.display = 'none'; }
+
+        async function handleSearch(query) {
+            const list = document.getElementById('resultsList');
+            if(query.length < 2) return;
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=in&limit=5`);
+                const data = await res.json();
+                list.innerHTML = data.map(p => `
+                    <div class="location-item" onclick="selectLoc('${p.display_name.split(',')[0]}', ${p.lat}, ${p.lon})">
+                        <i class="fa-solid fa-location-dot text-gray-400"></i>
+                        <div><p class="font-bold text-sm">${p.display_name.split(',')[0]}</p><p class="text-[10px] text-gray-400">${p.display_name.substring(0,40)}...</p></div>
+                    </div>
+                `).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        function selectLoc(name, lat, lon) {
+            tripData.destination = name;
+            document.getElementById('destText').innerText = name;
+            document.getElementById('destText').classList.remove('text-gray-900');
+            document.getElementById('destText').classList.add('text-green-600');
+            
+            // Calculate Distance (Simple formula for demo)
+            tripData.distance = (map.distance([26.9124, 75.7873], [lat, lon]) / 1000).toFixed(1);
+            updateFare();
+            
+            L.marker([lat, lon]).addTo(map);
+            map.flyTo([lat, lon], 14);
+            
+            document.getElementById('fareSection').classList.remove('hidden');
+            closeSearch();
+        }
+
+        function selectService(name, price) {
+            selectedService = { name, price };
+            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            updateFare();
+        }
+
+        function updateFare() {
+            tripData.fare = Math.round(tripData.distance * selectedService.price);
+            document.getElementById('priceVal').innerText = tripData.fare;
+            document.getElementById('distVal').innerText = tripData.distance + " KM";
+        }
+
+        function bookRide() {
+            const booking = {
+                customer: "Prabhu Dayal",
+                destination: tripData.destination,
+                service: selectedService.name,
+                amount: tripData.fare,
+                status: "Pending",
+                time: new Date().toLocaleString()
+            };
+            db.ref('bookings').push(booking);
+            alert("Booking Sent! Redirecting to Payment...");
+            // Yahan Step 3 (Payment QR) wala logic bhi trigger kar sakte hain
+        }
     </script>
 </body>
 </html>
