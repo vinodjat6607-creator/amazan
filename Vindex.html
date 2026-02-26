@@ -2,8 +2,8 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>V-Way | Live Rides</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>V-Way Mobile | Ultra Fast</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,207 +11,162 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; position: fixed; width: 100%; font-family: sans-serif; background: #f8fafc; }
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; position: fixed; background: #fff; }
+        #map { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
         
-        /* Mobile Panel Fixes */
-        .bottom-sheet { position: absolute; bottom: 0; width: 100%; z-index: 50; background: white; border-top-left-radius: 30px; border-top-right-radius: 30px; box-shadow: 0 -10px 25px rgba(0,0,0,0.1); padding-bottom: env(safe-area-inset-bottom); }
-        .search-trigger { border: 2px solid #10b981; margin: -25px 20px 20px 20px; background: white; border-radius: 50px; padding: 14px 20px; display: flex; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; position: relative; z-index: 60; }
+        /* Search Screen Fix (Mobile Overlay) */
+        #searchPage { 
+            position: fixed; inset: 0; background: white; z-index: 9999; 
+            display: none; flex-direction: column; width: 100%; height: 100%; 
+        }
         
-        /* Full Screen Search Page - Mobile Optimized */
-        #searchPage { position: fixed; inset: 0; background: white; z-index: 2000; display: none; flex-direction: column; }
-        .search-header { padding: 20px; background: white; border-bottom: 1px solid #f1f5f9; position: sticky; top: 0; }
-        .input-group { background: #f3f4f6; border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; margin-top: 15px; border: 1.5px solid transparent; }
-        .input-group:focus-within { border-color: #10b981; background: white; }
-        
-        /* Location Results List */
-        #resultsList { flex: 1; overflow-y: auto; background: white; -webkit-overflow-scrolling: touch; }
-        .location-item { padding: 16px 20px; border-bottom: 1px solid #f8fafc; display: flex; align-items: center; gap: 15px; transition: 0.2s; }
-        .location-item:active { background: #f1f5f9; }
-        
-        .service-card { min-width: 85px; text-align: center; padding: 12px; border-radius: 18px; background: #f8fafc; border: 1px solid #f1f5f9; transition: 0.3s; }
-        .service-card.active { border-color: #10b981; background: #f0fdf4; transform: scale(1.05); }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* Fast Result List */
+        .res-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .location-item { 
+            padding: 16px 20px; border-bottom: 1px solid #f8f9fa; 
+            display: flex; align-items: center; gap: 14px; 
+        }
+        .location-item:active { background: #f1f3f5; }
+
+        /* Floating Controls */
+        .top-ui { position: absolute; top: 45px; left: 0; right: 0; z-index: 100; padding: 0 16px; pointer-events: none; }
+        .bottom-sheet { 
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 500; 
+            background: white; border-top-left-radius: 28px; border-top-right-radius: 28px; 
+            box-shadow: 0 -8px 24px rgba(0,0,0,0.1); 
+        }
+        .search-box { 
+            background: white; border: 2px solid #10b981; border-radius: 50px; 
+            padding: 14px 22px; margin: -28px 20px 15px 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); 
+            display: flex; align-items: center; cursor: pointer; pointer-events: auto;
+        }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
 
-    <div class="absolute top-10 left-0 right-0 z-10 px-4 flex justify-between items-center">
-        <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg"><i class="fa-solid fa-bars-staggered"></i></div>
-        <div class="bg-white px-4 py-2 rounded-full shadow-lg text-[11px] font-black flex items-center gap-2">
-            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> 
-            <span id="userName">Detecting Location...</span>
+    <div class="top-ui">
+        <div class="flex justify-between items-center">
+            <div class="bg-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg pointer-events-auto"><i class="fa-solid fa-bars-staggered"></i></div>
+            <div class="bg-white px-4 py-2 rounded-full shadow-lg text-[11px] font-black pointer-events-auto flex items-center gap-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full"></div> V-WAY LIVE
+            </div>
+            <div class="bg-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg pointer-events-auto"><i class="fa-solid fa-user"></i></div>
         </div>
-        <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg"><i class="fa-regular fa-bell"></i></div>
     </div>
 
-    <div class="bottom-sheet" id="mainPanel">
-        <div class="search-trigger" onclick="openSearch()">
-            <i class="fa-solid fa-magnifying-glass text-green-500 mr-3"></i>
-            <span id="destText" class="text-gray-900 font-bold truncate text-sm">Where are you going?</span>
+    <div class="bottom-sheet">
+        <div class="search-box" onclick="openSearch()">
+            <i class="fa-solid fa-magnifying-glass text-green-500 mr-3 text-lg"></i>
+            <span id="destDisplay" class="text-gray-900 font-bold truncate text-sm">Search for a destination</span>
         </div>
 
-        <div class="flex gap-3 overflow-x-auto px-5 pb-6 no-scrollbar" id="serviceList">
-            <div class="service-card active" onclick="selectService('Bike', 10)">
+        <div class="flex gap-4 overflow-x-auto px-5 pb-5 no-scrollbar">
+            <div class="bg-gray-50 border p-3 rounded-2xl min-w-[90px] text-center" onclick="alert('Bike Selected')">
                 <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png" class="w-10 mx-auto">
                 <p class="text-[10px] font-black mt-1 uppercase">Bike</p>
             </div>
-            <div class="service-card" onclick="selectService('Car', 15)">
+            <div class="bg-gray-50 border p-3 rounded-2xl min-w-[90px] text-center">
                 <img src="https://cdn-icons-png.flaticon.com/512/741/741407.png" class="w-10 mx-auto">
                 <p class="text-[10px] font-black mt-1 uppercase">Car</p>
             </div>
-            <div class="service-card" onclick="selectService('Parcel', 8)">
+            <div class="bg-gray-50 border p-3 rounded-2xl min-w-[90px] text-center">
                 <img src="https://cdn-icons-png.flaticon.com/512/649/649730.png" class="w-10 mx-auto">
                 <p class="text-[10px] font-black mt-1 uppercase">Parcel</p>
             </div>
         </div>
 
-        <div id="fareSection" class="hidden px-5 pb-4 animate-bounce-in">
-            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl mb-4 border border-gray-100">
-                <div>
-                    <p class="text-[9px] text-gray-400 font-black uppercase">Final Fare</p>
-                    <p class="text-3xl font-black text-black">₹<span id="priceVal">0</span></p>
-                </div>
-                <div class="text-right">
-                    <p id="distVal" class="text-xs font-black text-green-600">0 KM</p>
-                    <p class="text-[9px] text-gray-400 font-bold italic">Secure Ride</p>
-                </div>
+        <div id="fareInfo" class="hidden px-5 pb-4">
+            <div class="bg-black text-white p-4 rounded-2xl flex justify-between items-center mb-4">
+                <div><p class="text-[10px] font-bold opacity-60">EST. FARE</p><p class="text-2xl font-black">₹<span id="fareVal">0</span></p></div>
+                <button onclick="confirmRide()" class="bg-green-500 text-black px-6 py-3 rounded-xl font-black text-xs uppercase">Book Now</button>
             </div>
-            <button onclick="bookRide()" class="w-full bg-black text-white py-4 rounded-2xl font-black text-sm uppercase tracking-tighter active:scale-95 transition-all">Book V-Way Ride</button>
         </div>
 
-        <div class="flex justify-around py-4 border-t border-gray-50 pb-6">
-            <div class="text-center text-black"><i class="fa-solid fa-house-chimney text-xl"></i><p class="text-[9px] font-black mt-1 uppercase">Home</p></div>
-            <div class="text-center text-gray-300"><i class="fa-solid fa-clock-rotate-left text-xl"></i><p class="text-[9px] font-black mt-1 uppercase">History</p></div>
-            <div class="text-center text-gray-300"><i class="fa-solid fa-wallet text-xl"></i><p class="text-[9px] font-black mt-1 uppercase">Wallet</p></div>
+        <div class="flex justify-around py-3 border-t border-gray-50 pb-6">
+            <div class="text-center text-black"><i class="fa-solid fa-house text-xl"></i><p class="text-[9px] font-black mt-1">HOME</p></div>
+            <div class="text-center text-gray-300"><i class="fa-solid fa-bolt text-xl"></i><p class="text-[9px] font-black mt-1">ELECTRIC</p></div>
+            <div class="text-center text-gray-300"><i class="fa-solid fa-wallet text-xl"></i><p class="text-[9px] font-black mt-1">WALLET</p></div>
         </div>
     </div>
 
     <div id="searchPage">
-        <div class="search-header">
-            <div class="flex items-center gap-4">
-                <i class="fa-solid fa-arrow-left text-lg" onclick="closeSearch()"></i>
-                <h2 class="font-black text-lg">Destination</h2>
-            </div>
-            <div class="input-group">
-                <div class="w-2.5 h-2.5 bg-red-500 rounded-full mr-3 shadow-lg shadow-red-200"></div>
-                <input type="text" id="destInput" oninput="fastSearch(this.value)" placeholder="Enter destination..." class="flex-1 bg-transparent outline-none text-sm font-bold py-1">
-                <i class="fa-solid fa-microphone text-gray-400 ml-2"></i>
+        <div class="p-4 flex items-center gap-3 border-b">
+            <i class="fa-solid fa-arrow-left text-xl p-2" onclick="closeSearch()"></i>
+            <div class="flex-1 bg-gray-100 rounded-full px-4 py-2 flex items-center">
+                <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                <input type="text" id="sInput" oninput="liveSearch(this.value)" placeholder="Search for any street or city..." class="bg-transparent flex-1 outline-none text-sm font-bold py-1">
+                <i class="fa-solid fa-magnifying-glass text-gray-400" onclick="liveSearch(document.getElementById('sInput').value)"></i>
             </div>
         </div>
-        <div id="resultsList">
-            <div class="p-10 text-center">
-                <img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" class="w-16 mx-auto opacity-20 mb-4">
-                <p class="text-gray-400 text-xs font-bold">Search for your drop location</p>
-            </div>
+        <div id="results" class="res-list">
+            <div class="p-10 text-center text-gray-400 text-xs">Start typing to see locations...</div>
         </div>
     </div>
 
     <script>
-        // --- FIREBASE CONFIG ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCLApPjVXdJzPP1Il1qskZ396-uCEmgWrQ",
-            databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com",
-            projectId: "amazan-df63b",
-            appId: "1:602713652429:web:f86940fcdeb990d09e3d84"
-        };
+        // --- CONFIG & MAP ---
+        const firebaseConfig = { apiKey: "AIzaSyCLApPjVXdJzPP1Il1qskZ396-uCEmgWrQ", databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com", projectId: "amazan-df63b", appId: "1:602713652429:web:f86940fcdeb990d09e3d84" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let map, userMarker, userCoords = [26.9124, 75.7873];
-        let selectedService = { name: 'Bike', price: 10 };
-        let tripData = { distance: 0, fare: 0, destination: "" };
+        let map, userLoc = [26.9124, 75.7873], sTimer;
 
-        // --- 1. LIVE LOCATION & MAP ---
-        function initMap() {
-            map = L.map('map', { zoomControl:false, attributionControl:false }).setView(userCoords, 14);
+        function init() {
+            map = L.map('map', { zoomControl: false, attributionControl: false }).setView(userLoc, 15);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-
+            
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    userCoords = [pos.coords.latitude, pos.coords.longitude];
-                    map.setView(userCoords, 16);
-                    if(userMarker) map.removeLayer(userMarker);
-                    userMarker = L.circleMarker(userCoords, { radius: 8, fillColor: "#10b981", color: "#fff", weight: 3, opacity: 1, fillOpacity: 1 }).addTo(map);
-                    document.getElementById('userName').innerText = "Live Location Active";
-                });
+                navigator.geolocation.getCurrentPosition(p => {
+                    userLoc = [p.coords.latitude, p.coords.longitude];
+                    map.setView(userLoc, 16);
+                    L.circleMarker(userLoc, {radius:7, fillColor:"#10b981", color:"#fff", weight:3, fillOpacity:1}).addTo(map);
+                }, null, {enableHighAccuracy: true});
             }
         }
-        initMap();
+        init();
 
-        // --- 2. FAST SEARCH LOGIC ---
-        function openSearch() { document.getElementById('searchPage').style.display = 'flex'; document.getElementById('destInput').focus(); }
+        function openSearch() { document.getElementById('searchPage').style.display = 'flex'; document.getElementById('sInput').focus(); }
         function closeSearch() { document.getElementById('searchPage').style.display = 'none'; }
 
-        let searchTimeout;
-        async function fastSearch(query) {
-            const list = document.getElementById('resultsList');
-            if(query.length < 1) return;
-
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(async () => {
+        // --- ULTRA FAST SEARCH (Gali-Gali) ---
+        async function liveSearch(q) {
+            if(q.length < 2) return;
+            clearTimeout(sTimer);
+            sTimer = setTimeout(async () => {
+                const list = document.getElementById('results');
                 try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=in&limit=8`);
+                    // Fast Street API
+                    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lat=${userLoc[0]}&lon=${userLoc[1]}`);
                     const data = await res.json();
-                    list.innerHTML = data.map(p => `
-                        <div class="location-item" onclick="selectLoc('${p.display_name.split(',')[0]}', ${p.lat}, ${p.lon})">
-                            <div class="bg-gray-100 w-10 h-10 rounded-full flex items-center justify-center text-gray-400 shrink-0">
-                                <i class="fa-solid fa-location-dot"></i>
-                            </div>
-                            <div class="overflow-hidden">
-                                <p class="font-black text-sm text-gray-900">${p.display_name.split(',')[0]}</p>
-                                <p class="text-[10px] text-gray-400 truncate">${p.display_name}</p>
-                            </div>
-                            <i class="fa-solid fa-chevron-right ml-auto text-gray-200 text-[10px]"></i>
-                        </div>
-                    `).join('');
-                } catch(e) { console.error("Search Error:", e); }
-            }, 150); // Fast 150ms delay
+                    
+                    list.innerHTML = data.features.map(f => {
+                        const p = f.properties;
+                        const addr = [p.name, p.street, p.city, p.state].filter(Boolean).join(', ');
+                        return `
+                        <div class="location-item" onclick="pickLoc('${p.name || p.street}', ${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]})">
+                            <i class="fa-solid fa-location-arrow text-gray-300"></i>
+                            <div class="truncate"><p class="font-bold text-sm text-gray-800">${p.name || p.street}</p><p class="text-[10px] text-gray-400 truncate">${addr}</p></div>
+                        </div>`;
+                    }).join('');
+                } catch(e) { console.error(e); }
+            }, 80); // Hyper fast 80ms delay
         }
 
-        function selectLoc(name, lat, lon) {
-            tripData.destination = name;
-            document.getElementById('destText').innerText = name;
-            document.getElementById('destText').classList.replace('text-gray-900', 'text-green-600');
-            
-            // Real Distance Calculation
-            tripData.distance = (map.distance(userCoords, [lat, lon]) / 1000).toFixed(1);
-            updateFare();
-            
+        function pickLoc(name, lat, lon) {
+            const dist = (map.distance(userLoc, [lat, lon]) / 1000).toFixed(1);
+            document.getElementById('destDisplay').innerText = name;
+            document.getElementById('fareVal').innerText = Math.round(dist * 10);
+            document.getElementById('fareInfo').classList.remove('hidden');
             L.marker([lat, lon]).addTo(map);
-            map.fitBounds([userCoords, [lat, lon]], { padding: [100, 100] });
-            
-            document.getElementById('fareSection').classList.remove('hidden');
+            map.fitBounds([userLoc, [lat, lon]], {padding: [100, 100]});
             closeSearch();
         }
 
-        function selectService(name, price) {
-            selectedService = { name, price };
-            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            updateFare();
-        }
-
-        function updateFare() {
-            tripData.fare = Math.round(tripData.distance * selectedService.price);
-            document.getElementById('priceVal').innerText = tripData.fare;
-            document.getElementById('distVal').innerText = tripData.distance + " KM";
-        }
-
-        function bookRide() {
-            const booking = {
-                destination: tripData.destination,
-                service: selectedService.name,
-                amount: tripData.fare,
-                km: tripData.distance,
-                status: "Pending",
-                time: new Date().toLocaleString()
-            };
-            db.ref('bookings').push(booking);
-            alert("V-Way Ride Requested! Searching for nearby driver...");
+        function confirmRide() {
+            db.ref('bookings').push({ dest: document.getElementById('destDisplay').innerText, fare: document.getElementById('fareVal').innerText, time: new Date().toLocaleString() });
+            alert("V-Way Ride Booked! Driver searching...");
         }
     </script>
 </body>
