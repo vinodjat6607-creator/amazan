@@ -3,216 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>V-Way | Fast Mobile Rides</title>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <title>V-Way | Mobile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #loader { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .car-anim { font-size: 40px; color: #eab308; animation: drive 1s infinite linear; }
-        @keyframes drive { 0% { transform: translateX(-30px); opacity: 0; } 100% { transform: translateX(30px); opacity: 0; } }
-        
-        #map { height: 180px; border-radius: 24px; display: none; margin: 15px 0; border: 1px solid #eee; z-index: 1; }
-        
-        .search-container { position: relative; width: 100%; }
-        .suggestions { 
-            background: white; border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.2); 
-            position: absolute; left: 0; right: 0; width: 100%; z-index: 9999; 
-            max-height: 200px; overflow-y: auto; margin-top: 5px;
+        /* Mobile Screen Lock */
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%; 
+            overflow: hidden; position: fixed; font-family: sans-serif;
         }
-        .suggestion-item { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; cursor: pointer; color: #334155; }
-        
-        /* User Image UI Like Screenshot */
-        .vehicle-card { background: white; border-radius: 28px; padding: 16px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f8fafc; transition: all 0.2s; }
-        .vehicle-card:active { transform: scale(0.96); }
+
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
+
+        /* Top Overlay UI */
+        .top-ui {
+            position: absolute; top: 45px; left: 0; right: 0; z-index: 20;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+        }
+        .circle-btn {
+            background: white; width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12); color: #333;
+        }
+        .location-pill {
+            background: white; padding: 10px 18px; border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12); display: flex; align-items: center;
+            font-size: 13px; font-weight: 700; max-width: 180px;
+        }
+
+        /* Bottom Floating Panel */
+        .bottom-panel {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 30;
+            background: white; border-top-left-radius: 28px; border-top-right-radius: 28px;
+            box-shadow: 0 -10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Ola Style Search Bar */
+        .search-box {
+            background: white; border-radius: 50px; padding: 14px 22px;
+            margin: -30px 20px 20px 20px; display: flex; align-items: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: 2px solid #10b981;
+            position: relative; z-index: 40;
+        }
+
+        /* Horizontal Scroll Services */
+        .services-grid {
+            display: flex; gap: 12px; overflow-x: auto; padding: 5px 20px 20px 20px;
+            scrollbar-width: none;
+        }
+        .services-grid::-webkit-scrollbar { display: none; }
+
+        .service-card {
+            min-width: 85px; flex: 0 0 auto; background: #f8fafc;
+            border-radius: 18px; padding: 12px 5px; text-align: center;
+            border: 1px solid #f1f5f9; transition: all 0.2s;
+        }
+        .service-card:active { background: #f0fdf4; transform: scale(0.95); }
+        .service-card img { width: 42px; height: auto; margin: 0 auto 6px auto; }
+        .service-card span { font-size: 11px; font-weight: 700; color: #475569; display: block; }
+
+        /* Bottom Tab Bar */
+        .tab-bar {
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 12px 0 28px 0; border-top: 1px solid #f1f5f9;
+        }
+        .tab-item { text-align: center; color: #94a3b8; flex: 1; }
+        .tab-item.active { color: #000; }
+        .tab-item i { font-size: 22px; margin-bottom: 4px; display: block; }
+        .tab-item p { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
-<body class="bg-[#f1f5f9] font-sans">
+<body>
 
-    <div id="loader">
-        <i class="fa-solid fa-car-side car-anim"></i>
-        <p class="text-white font-black italic mt-4 tracking-widest text-[10px]">V-WAY STARTING...</p>
+    <div id="map"></div>
+
+    <div class="top-ui">
+        <div class="circle-btn"><i class="fa-solid fa-bars-staggered"></i></div>
+        <div class="location-pill">
+            <i class="fa-solid fa-location-dot text-green-600 mr-2"></i>
+            <span class="truncate">Kaladera, Rajasthan</span>
+        </div>
+        <div class="circle-btn"><i class="fa-solid fa-user-ninja"></i></div>
     </div>
 
-    <nav class="bg-black text-white p-5 sticky top-0 z-[50] flex justify-between items-center shadow-lg">
-        <h1 class="text-2xl font-black italic text-yellow-500 tracking-tighter">V-WAY</h1>
-        <div class="text-[10px] font-black border-2 border-yellow-500 px-4 py-1.5 rounded-full text-yellow-500 uppercase">Pro Fast</div>
-    </nav>
-
-    <div id="step1" class="p-4 space-y-4">
-        <div class="flex gap-2 mb-2">
-            <button onclick="filterFleet('all')" class="flex-1 bg-black text-white py-2 rounded-xl text-[10px] font-bold uppercase">All</button>
-            <button onclick="filterFleet('car')" class="flex-1 bg-white text-black py-2 rounded-xl text-[10px] font-bold border border-gray-200 uppercase">Cars</button>
-            <button onclick="filterFleet('bike')" class="flex-1 bg-white text-black py-2 rounded-xl text-[10px] font-bold border border-gray-200 uppercase">Bikes</button>
-        </div>
+    <div class="bottom-panel">
         
-        <div id="taxiList" class="space-y-4">
-            <div class="bg-white h-24 rounded-[28px] animate-pulse"></div>
-            <div class="bg-white h-24 rounded-[28px] animate-pulse"></div>
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass text-gray-400 mr-3 text-lg"></i>
+            <span class="text-gray-500 font-semibold">Where are you going?</span>
         </div>
-    </div>
 
-    <div id="step2" class="fixed inset-0 bg-[#f1f5f9] hidden z-[60] p-5 overflow-y-auto">
-        <button onclick="closeStep2()" class="font-black text-gray-400 mb-6 flex items-center gap-2 uppercase text-[10px]">
-            <i class="fa-solid fa-arrow-left text-sm"></i> Back to Fleet
-        </button>
-
-        <div class="bg-white p-5 rounded-[32px] space-y-4 shadow-xl border border-white">
-            <div class="search-container">
-                <input type="text" id="pickup" oninput="fastSearch('pickup')" placeholder="Pickup kahan se?" class="w-full p-4 pl-12 rounded-2xl bg-gray-50 border-none outline-none text-sm font-bold shadow-inner">
-                <i class="fa-solid fa-circle text-green-500 absolute left-5 top-1/2 -translate-y-1/2 text-[10px]"></i>
-                <div id="pickupSuggest" class="suggestions hidden"></div>
+        <div class="services-grid">
+            <div class="service-card">
+                <img src="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
+                <span>Outstation</span>
             </div>
-            
-            <div class="search-container">
-                <input type="text" id="drop" oninput="fastSearch('drop')" placeholder="Drop kahan tak?" class="w-full p-4 pl-12 rounded-2xl bg-gray-50 border-none outline-none text-sm font-bold shadow-inner">
-                <i class="fa-solid fa-location-dot text-red-500 absolute left-5 top-1/2 -translate-y-1/2 text-sm"></i>
-                <div id="dropSuggest" class="suggestions hidden"></div>
+            <div class="service-card">
+                <img src="https://cdn-icons-png.flaticon.com/512/741/741407.png">
+                <span>Rentals</span>
+            </div>
+            <div class="service-card">
+                <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png">
+                <span>Bike</span>
+            </div>
+            <div class="service-card">
+                <img src="https://cdn-icons-png.flaticon.com/512/649/649730.png">
+                <span>Parcel</span>
+            </div>
+            <div class="service-card">
+                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111244.png">
+                <span>Auto</span>
             </div>
         </div>
 
-        <div id="map"></div>
-
-        <div class="bg-black text-white p-8 rounded-[40px] mt-6 text-center shadow-2xl">
-            <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Total Estimated Fare</p>
-            <p class="text-5xl font-black text-yellow-500 italic">₹<span id="totalFare">0</span></p>
-            <p id="kmInfo" class="text-[10px] text-gray-500 mt-2 font-bold italic"></p>
+        <div class="tab-bar">
+            <div class="tab-item active">
+                <i class="fa-solid fa-house-chimney"></i>
+                <p>Home</p>
+            </div>
+            <div class="tab-item">
+                <i class="fa-solid fa-box-archive"></i>
+                <p>Parcel</p>
+            </div>
+            <div class="tab-item">
+                <i class="fa-solid fa-bolt-lightning"></i>
+                <p>Electric</p>
+            </div>
+            <div class="tab-item">
+                <i class="fa-solid fa-wallet"></i>
+                <p>Payment</p>
+            </div>
         </div>
-
-        <button onclick="goToStep3()" class="w-full bg-yellow-500 text-black p-5 rounded-3xl font-black text-lg mt-6 shadow-xl active:scale-95 transition-all uppercase tracking-tight">Book This Ride</button>
-    </div>
-
-    <div id="step3" class="fixed inset-0 bg-white hidden z-[70] p-6 text-center flex flex-col justify-center items-center">
-        <h2 class="text-2xl font-black mb-8 italic">SECURE PAYMENT</h2>
-        <div class="p-4 border-[12px] border-black rounded-[55px] bg-white shadow-2xl mb-10">
-            <img id="upiQR" src="" class="w-64 h-64">
-        </div>
-        <button onclick="notifyAdmin()" class="w-full max-w-xs bg-[#25D366] text-white p-5 rounded-3xl font-black flex items-center justify-center gap-3 shadow-lg">
-            <i class="fa-brands fa-whatsapp text-2xl"></i> SEND SCREENSHOT
-        </button>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCLApPjVXdJzPP1Il1qskZ396-uCEmgWrQ",
-            authDomain: "amazan-df63b.firebaseapp.com",
-            databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com",
-            projectId: "amazan-df63b",
-            storageBucket: "amazan-df63b.firebasestorage.app",
-            appId: "1:602713652429:web:f86940fcdeb990d09e3d84"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        let taxiData = {}, map, coords = {p:null, d:null}, searchTimer, allTaxis = [];
+        // Map Initialization (Mobile Optimized)
+        var map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false,
+            dragging: true,
+            tap: true
+        }).setView([26.9124, 75.7873], 15);
 
-        window.onload = () => { setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500); };
+        // Modern Map Tiles (CartoDB Positron - Looks cleaner for apps)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // Fetch Fleet
-        db.ref("taxis").on("value", (snap) => {
-            allTaxis = snap.val();
-            renderFleet('all');
-        });
-
-        function renderFleet(filter) {
-            const list = document.getElementById("taxiList");
-            list.innerHTML = "";
-            for(let id in allTaxis) {
-                const t = allTaxis[id];
-                if(t.hidden) continue;
-                if(filter !== 'all' && t.category !== filter) continue;
-
-                list.innerHTML += `
-                <div onclick='openStep2(${JSON.stringify(t)})' class="vehicle-card">
-                    <img src="${t.img}" class="w-20 h-20 object-cover rounded-2xl shadow-md border-2 border-gray-50">
-                    <div class="flex-1">
-                        <h3 class="font-black text-gray-900 text-lg leading-tight">${t.name}</h3>
-                        <p class="text-[11px] text-green-600 font-bold uppercase mt-1">Available • ₹${t.price}/KM</p>
-                    </div>
-                    <div class="bg-gray-100 w-10 h-10 rounded-full flex items-center justify-center text-gray-400">
-                        <i class="fa-solid fa-chevron-right text-xs"></i>
-                    </div>
-                </div>`;
-            }
-        }
-
-        function filterFleet(type) {
-            renderFleet(type);
-            event.target.parentElement.querySelectorAll('button').forEach(btn => {
-                btn.className = "flex-1 bg-white text-black py-2 rounded-xl text-[10px] font-bold border border-gray-200 uppercase";
-            });
-            event.target.className = "flex-1 bg-black text-white py-2 rounded-xl text-[10px] font-bold uppercase";
-        }
-
-        function openStep2(t) {
-            taxiData = t;
-            document.getElementById('step2').classList.remove('hidden');
-            if(!map) {
-                map = L.map('map', {zoomControl: false}).setView([26.9124, 75.7873], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            }
-        }
-
-        function closeStep2() { document.getElementById('step2').classList.add('hidden'); }
-
-        async function fastSearch(type) {
-            const val = document.getElementById(type).value;
-            const div = document.getElementById(type + 'Suggest');
-            if(val.length < 3) { div.innerHTML = ""; div.classList.add('hidden'); return; }
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(async () => {
-                try {
-                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${val}&countrycodes=in&limit=5`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    div.innerHTML = "";
-                    if(data.length > 0) {
-                        div.classList.remove('hidden');
-                        data.forEach(item => {
-                            const name = item.display_name.split(',').slice(0, 3).join(',');
-                            const el = document.createElement('div');
-                            el.className = "suggestion-item";
-                            el.innerText = name;
-                            el.onclick = () => {
-                                document.getElementById(type).value = name;
-                                div.classList.add('hidden');
-                                coords[type === 'pickup' ? 'p' : 'd'] = [item.lat, item.lon];
-                                document.getElementById('map').style.display = 'block';
-                                calculateKM();
-                            };
-                            div.appendChild(el);
-                        });
-                    }
-                } catch(e) { console.error(e); }
-            }, 300);
-        }
-
-        function calculateKM() {
-            if(coords.p && coords.d) {
-                const dist = (map.distance(coords.p, coords.d) / 1000 * 1.25).toFixed(1);
-                document.getElementById('kmInfo').innerText = `${dist} KM Distance`;
-                document.getElementById('totalFare').innerText = Math.round(dist * taxiData.price);
-                map.fitBounds([coords.p, coords.d], {padding: [40, 40]});
-                L.marker(coords.p).addTo(map);
-                L.marker(coords.d).addTo(map);
-            }
-        }
-
-        function goToStep3() {
-            const amt = document.getElementById('totalFare').innerText;
-            if(amt <= 0) return alert("Please select locations first.");
-            const bookingData = { taxi: taxiData.name, pickup: document.getElementById('pickup').value, drop: document.getElementById('drop').value, amount: amt, time: new Date().toLocaleString() };
-            db.ref("bookings").push(bookingData);
-            document.getElementById('upiQR').src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=upi://pay?pa=vinodjat88612@ibl%26am=${amt}%26cu=INR%26pn=V-WAY`;
-            document.getElementById('step3').classList.remove('hidden');
-        }
-
-        function notifyAdmin() {
-            const msg = `🚕 *V-WAY RIDE*\n\n👤 *Taxi:* ${taxiData.name}\n📍 *From:* ${document.getElementById('pickup').value}\n🏁 *To:* ${document.getElementById('drop').value}\n💰 *Fare:* ₹${document.getElementById('totalFare').innerText}`;
-            window.open(`https://wa.me/919024276607?text=${encodeURIComponent(msg)}`);
-        }
+        // Marker for Current Location
+        var marker = L.circleMarker([26.9124, 75.7873], {
+            radius: 8,
+            fillColor: "#000",
+            color: "#fff",
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 1
+        }).addTo(map);
     </script>
 </body>
 </html>
