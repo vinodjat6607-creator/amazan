@@ -14,150 +14,149 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fff; overflow: hidden; margin: 0; }
         
-        /* Map Layout */
-        #map { position: absolute; inset: 0; height: 100%; z-index: 1; background: #e5e7eb; }
+        #map { position: absolute; inset: 0; height: 100%; z-index: 1; }
         
-        /* Top Navigation Overlay */
-        .top-header { position: absolute; top: 15px; left: 0; right: 0; z-index: 1000; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; }
-        .user-chip { background: white; padding: 8px 16px; border-radius: 50px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        /* Floating Route Header */
+        .route-header { position: absolute; top: 0; left: 0; right: 0; background: white; z-index: 5000; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .line-connector { position: absolute; left: 24px; top: 75px; bottom: 35px; width: 2px; background: #E2E8F0; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; position: relative; z-index: 2; }
+        .stop-box { background: #F3F4F6; border-radius: 10px; padding: 10px 15px; width: 100%; }
 
-        /* Ola Style Bottom Container */
-        .main-ui-panel { position: absolute; bottom: 0; width: 100%; background: white; z-index: 2000; border-top-left-radius: 30px; border-top-right-radius: 30px; box-shadow: 0 -8px 30px rgba(0,0,0,0.1); padding-bottom: 90px; }
-        .drag-handle { width: 40px; height: 5px; background: #f0f0f0; border-radius: 10px; margin: 12px auto; }
+        /* Bottom UI Panel */
+        .ola-panel { position: absolute; bottom: 0; width: 100%; background: #F8F9FB; z-index: 4000; border-top-left-radius: 30px; border-top-right-radius: 30px; padding-bottom: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); }
+        .handle { width: 40px; height: 4.5px; background: #E2E8F0; border-radius: 10px; margin: 12px auto; }
 
-        /* Search Bar Exact UI */
-        .search-pill { border: 2px solid #10B981; border-radius: 50px; padding: 12px 20px; margin: 5px 20px 15px; display: flex; align-items: center; gap: 12px; background: white; cursor: pointer; }
+        /* Search Screen */
+        #manualSearch { position: fixed; inset: 0; background: white; z-index: 9000; display: none; flex-direction: column; }
         
-        /* Service Cards Horizontal */
-        .service-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 0 20px 15px; scrollbar-width: none; }
-        .service-scroll::-webkit-scrollbar { display: none; }
-        .cat-card { min-width: 100px; background: #F8F9FB; border-radius: 20px; padding: 15px 10px; text-align: center; border: 1px solid #f1f1f1; }
-        .cat-card i { font-size: 20px; color: #10B981; margin-bottom: 8px; display: block; }
-        .cat-card p { font-size: 10px; font-weight: 800; color: #333; }
-
-        /* Ride Type Cards */
-        .ride-type-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 0 20px 20px; }
-        .ride-card { min-width: 140px; background: white; border: 1px solid #eee; border-radius: 20px; padding: 15px; position: relative; }
-        .ride-card.active { border: 2.5px solid #10B981; }
-        .ride-card img { width: 70px; float: right; margin-top: 5px; }
-
-        /* Bottom Menu Bar */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-around; padding: 12px 0; z-index: 3000; }
-        .nav-item { text-align: center; color: #9ca3af; font-size: 10px; font-weight: 700; }
-        .nav-item.active { color: #000; }
-        
-        /* Search Full Page */
-        #searchScreen { position: fixed; inset: 0; background: white; z-index: 5000; display: none; flex-direction: column; }
+        /* Category Scroll */
+        .h-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 15px 20px; scrollbar-width: none; }
+        .h-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
 
-    <div class="top-header">
-        <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg"><i class="fa-solid fa-bars"></i></div>
-        <div class="flex gap-2">
-            <div class="user-chip">Prabhu dayal meena... <i class="fa-regular fa-heart text-red-400"></i></div>
-        </div>
-    </div>
-
-    <div class="main-ui-panel">
-        <div class="drag-handle"></div>
-
-        <div class="search-pill" onclick="showSearch()">
-            <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-            <span class="text-sm font-bold text-gray-800">Enter Destination</span>
+    <div class="route-header" id="routePanel">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-4">
+                <i class="fa-solid fa-arrow-left text-lg"></i>
+                <h1 class="font-bold">Your Route</h1>
+            </div>
+            <div onclick="toggleModal('contactModal', true)" class="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-user text-[10px] text-gray-500"></i>
+                <span id="whoLabel" class="text-[11px] font-bold">Myself</span>
+                <i class="fa-solid fa-chevron-down text-[8px] text-gray-400"></i>
+            </div>
         </div>
 
-        <div class="px-5 mb-5">
-            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-                <div class="bg-green-50 w-8 h-8 rounded-full flex items-center justify-center text-green-500 text-xs"><i class="fa-solid fa-bolt"></i></div>
-                <div class="flex-1">
-                    <p class="text-[11px] font-bold truncate">Jaipur Railway Station, Rajasthan</p>
-                    <p class="text-[9px] text-gray-400 font-bold uppercase">Instant one click booking</p>
+        <div class="relative space-y-3 px-2">
+            <div class="line-connector"></div>
+            <div class="flex items-center gap-4">
+                <div class="dot bg-green-500"></div>
+                <div class="stop-box text-sm font-medium text-gray-500">Prabhu dayal meena house, Kaladera</div>
+            </div>
+            <div class="flex items-center gap-4" onclick="openSearch()">
+                <div class="dot bg-red-500"></div>
+                <div class="stop-box flex justify-between items-center">
+                    <input type="text" id="destDisplay" placeholder="Enter destination" class="bg-transparent text-sm font-bold outline-none w-full" readonly>
+                    <i class="fa-solid fa-plus text-gray-400 text-xs"></i>
                 </div>
-                <i class="fa-solid fa-chevron-right text-gray-300 text-sm"></i>
             </div>
-        </div>
-
-        <div class="ride-type-scroll no-scrollbar">
-            <div class="ride-card active">
-                <p class="text-[10px] text-gray-400 font-bold">Mini</p>
-                <p class="font-black text-sm">₹766</p>
-                <img src="https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,w_956,h_537/v1568070387/assets/b5/0a51f1-88f3-4f5b-897c-3b5849646487/original/UberX.png">
-            </div>
-            <div class="ride-card">
-                <p class="text-[10px] text-gray-400 font-bold">Book Any</p>
-                <p class="font-black text-sm">₹766-809</p>
-                <img src="https://www.uber-assets.com/image/upload/v1568070387/assets/b5/0a51f1-88f3-4f5b-897c-3b5849646487/original/UberX.png">
-            </div>
-        </div>
-
-        <div class="service-scroll">
-            <div class="cat-card"><i class="fa-solid fa-suitcase-rolling"></i><p>OUTSTATION</p></div>
-            <div class="cat-card"><i class="fa-solid fa-clock"></i><p>RENTALS</p></div>
-            <div class="cat-card"><i class="fa-solid fa-motorcycle"></i><p>BIKE</p></div>
-            <div class="cat-card"><i class="fa-solid fa-box"></i><p>PARCEL</p></div>
         </div>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active"><i class="fa-solid fa-house text-lg mb-1"></i><p>Home</p></div>
-        <div class="nav-item"><i class="fa-solid fa-box text-lg mb-1"></i><p>Parcel</p></div>
-        <div class="nav-item"><i class="fa-solid fa-bolt text-lg mb-1"></i><p>Electric</p></div>
-        <div class="nav-item"><i class="fa-solid fa-indian-rupee-sign text-lg mb-1"></i><p>Loans</p></div>
+    <div id="manualSearch">
+        <div class="p-4 flex items-center gap-4 border-b shadow-sm">
+            <i class="fa-solid fa-chevron-left text-xl" onclick="closeSearch()"></i>
+            <input type="text" id="searchInput" oninput="doFastSearch(this.value)" placeholder="Search location manually..." class="flex-1 text-lg font-bold outline-none">
+        </div>
+        <div id="searchResults" class="flex-1 overflow-y-auto bg-gray-50">
+             <div class="p-10 text-center text-gray-400 font-bold">Start typing for lightning fast results...</div>
+        </div>
     </div>
 
-    <div id="searchScreen">
-        <div class="p-4 flex items-center gap-4 border-b">
-            <i class="fa-solid fa-chevron-left text-xl" onclick="hideSearch()"></i>
-            <input type="text" id="manualInput" oninput="fastSearch(this.value)" placeholder="Search destination manually..." class="flex-1 py-2 font-bold outline-none text-lg">
+    <div class="ola-panel">
+        <div class="handle"></div>
+        
+        <div class="h-scroll">
+            <div class="min-w-[140px] bg-white p-4 rounded-2xl border-2 border-green-500 shadow-sm relative">
+                <div class="absolute top-3 left-3 w-2 h-2 bg-green-500 rounded-full border border-white"></div>
+                <p class="text-[10px] font-bold text-gray-400">Mini</p>
+                <p class="font-black">₹766</p>
+                <img src="https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,w_956,h_537/v1568070387/assets/b5/0a51f1-88f3-4f5b-897c-3b5849646487/original/UberX.png" class="w-16 mt-2 ml-auto">
+            </div>
+            <div class="min-w-[140px] bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] font-bold text-gray-400">Book Any</p>
+                <p class="font-black text-xs">₹766-809</p>
+                <img src="https://www.uber-assets.com/image/upload/v1568070387/assets/b5/0a51f1-88f3-4f5b-897c-3b5849646487/original/UberX.png" class="w-16 mt-2 ml-auto opacity-50">
+            </div>
         </div>
-        <div id="searchRes" class="flex-1 overflow-y-auto bg-gray-50">
-            <div class="p-10 text-center text-gray-400 font-bold text-sm">Type any location in Jaipur/Kaladera...</div>
+
+        <div class="h-scroll pb-4">
+            <div class="text-center min-w-[75px]"><div class="bg-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-1 shadow-sm"><i class="fa-solid fa-suitcase-rolling text-green-500"></i></div><p class="text-[9px] font-bold">Outstation</p></div>
+            <div class="text-center min-w-[75px]"><div class="bg-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-1 shadow-sm"><i class="fa-solid fa-clock text-green-500"></i></div><p class="text-[9px] font-bold">Rentals</p></div>
+            <div class="text-center min-w-[75px]"><div class="bg-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-1 shadow-sm"><i class="fa-solid fa-motorcycle text-green-500"></i></div><p class="text-[9px] font-bold">Bike</p></div>
+            <div class="text-center min-w-[75px]"><div class="bg-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-1 shadow-sm"><i class="fa-solid fa-box text-green-500"></i></div><p class="text-[9px] font-bold">Parcel</p></div>
+        </div>
+
+        <div class="px-5">
+            <button onclick="bookNow()" class="w-full bg-black text-white py-4 rounded-xl font-black tracking-widest text-sm shadow-xl">CONFIRM V-WAY RIDE</button>
+        </div>
+    </div>
+
+    <div id="contactModal" class="fixed inset-0 bg-black/50 z-[9999] hidden flex-col justify-end">
+        <div class="bg-white p-6 rounded-t-[30px]">
+            <h3 class="text-lg font-black mb-1">Someone else taking this ride?</h3>
+            <p class="text-[10px] text-gray-400 font-bold mb-6">SMS details will be sent to the chosen contact.</p>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-4 border-2 border-green-500 bg-green-50 rounded-2xl">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-circle-user text-gray-400"></i> <span class="font-bold">Myself</span></div>
+                    <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center"><div class="w-2 h-2 bg-white rounded-full"></div></div>
+                </div>
+                <div class="flex items-center justify-between p-4 border border-gray-100 rounded-2xl text-blue-600">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-address-book"></i> <span class="font-bold">Choose another contact</span></div>
+                    <i class="fa-solid fa-chevron-right text-gray-300"></i>
+                </div>
+            </div>
+            <button onclick="toggleModal('contactModal', false)" class="w-full bg-black text-white py-4 rounded-xl font-bold mt-8">Continue</button>
         </div>
     </div>
 
     <script>
-        // --- MAP SETUP ---
-        let map;
-        try {
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([26.9124, 75.7873], 15);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-            // User Position Blue Dot
-            L.circleMarker([26.9124, 75.7873], { radius: 7, fillColor: "#3B82F6", color: "#fff", weight: 3, fillOpacity: 1 }).addTo(map);
-        } catch (e) {
-            console.log("Map Error: Make sure you are connected to internet.");
-            document.getElementById('map').innerHTML = "<div style='padding:100px; text-align:center;'>Check Internet Connection</div>";
-        }
+        // --- MAP CONFIG ---
+        let map = L.map('map', { zoomControl: false, attributionControl: false }).setView([26.9124, 75.7873], 15);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+        L.circleMarker([26.9124, 75.7873], { radius: 7, fillColor: "#3B82F6", color: "#fff", weight: 3, fillOpacity: 1 }).addTo(map);
 
-        // --- SEARCH FUNCTIONS ---
-        function showSearch() { document.getElementById('searchScreen').style.display = 'flex'; document.getElementById('manualInput').focus(); }
-        function hideSearch() { document.getElementById('searchScreen').style.display = 'none'; }
+        // --- SEARCH ENGINE (Optimized) ---
+        function openSearch() { document.getElementById('manualSearch').style.display = 'flex'; document.getElementById('searchInput').focus(); }
+        function closeSearch() { document.getElementById('manualSearch').style.display = 'none'; }
 
-        async function fastSearch(q) {
-            if(q.length < 3) return;
-            const res = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=5&lat=26.9124&lon=75.7873`);
+        async function doFastSearch(q) {
+            if(q.length < 2) return;
+            const res = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=6&lat=26.9124&lon=75.7873`);
             const data = await res.json();
-            
             let html = data.features.map(f => `
-                <div class="p-4 border-b bg-white flex items-center gap-4" onclick="selectLocation('${f.properties.name}', ${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]})">
-                    <i class="fa-solid fa-location-dot text-gray-300"></i>
-                    <div>
-                        <p class="font-bold text-sm text-gray-800">${f.properties.name}</p>
-                        <p class="text-[10px] text-gray-400 font-bold">${f.properties.city || 'Rajasthan'}, India</p>
-                    </div>
+                <div class="p-4 border-b flex items-center gap-4 bg-white" onclick="selectLoc('${f.properties.name}', ${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]})">
+                    <div class="bg-gray-100 p-3 rounded-full"><i class="fa-solid fa-location-dot text-gray-300"></i></div>
+                    <div><p class="font-bold text-sm">${f.properties.name}</p><p class="text-[10px] text-gray-400 font-bold">${f.properties.city || 'Rajasthan'}, India</p></div>
                 </div>
             `).join('');
-            document.getElementById('searchRes').innerHTML = html;
+            document.getElementById('searchResults').innerHTML = html;
         }
 
-        function selectLocation(name, lat, lon) {
-            hideSearch();
+        function selectLoc(name, lat, lon) {
+            document.getElementById('destDisplay').value = name;
             map.flyTo([lat, lon], 15);
             L.marker([lat, lon]).addTo(map);
-            alert("Destination Selected: " + name);
+            closeSearch();
         }
+
+        // --- UTILS ---
+        function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
+        function bookNow() { alert("Searching for V-Way Partners..."); }
     </script>
 </body>
 </html>
