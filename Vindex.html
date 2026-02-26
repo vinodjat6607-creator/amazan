@@ -2,171 +2,155 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>V-Way Mobile | Ultra Fast</title>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>V-Way | Book a Ride</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; position: fixed; background: #fff; }
-        #map { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f4f7f6; font-family: 'Inter', sans-serif; }
+        #map { position: absolute; right: 0; top: 0; width: 65%; height: 100%; z-index: 1; }
         
-        /* Search Screen Fix (Mobile Overlay) */
-        #searchPage { 
-            position: fixed; inset: 0; background: white; z-index: 9999; 
-            display: none; flex-direction: column; width: 100%; height: 100%; 
-        }
+        /* Left Booking Panel */
+        .booking-side { position: absolute; left: 0; top: 0; width: 35%; height: 100%; background: white; z-index: 10; box-shadow: 10px 0 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
         
-        /* Fast Result List */
-        .res-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .location-item { 
-            padding: 16px 20px; border-bottom: 1px solid #f8f9fa; 
-            display: flex; align-items: center; gap: 14px; 
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .booking-side { width: 100%; height: 50%; bottom: 0; top: auto; border-radius: 25px 25px 0 0; }
+            #map { width: 100%; height: 55%; top: 0; }
         }
-        .location-item:active { background: #f1f3f5; }
 
-        /* Floating Controls */
-        .top-ui { position: absolute; top: 45px; left: 0; right: 0; z-index: 100; padding: 0 16px; pointer-events: none; }
-        .bottom-sheet { 
-            position: absolute; bottom: 0; left: 0; right: 0; z-index: 500; 
-            background: white; border-top-left-radius: 28px; border-top-right-radius: 28px; 
-            box-shadow: 0 -8px 24px rgba(0,0,0,0.1); 
-        }
-        .search-box { 
-            background: white; border: 2px solid #10b981; border-radius: 50px; 
-            padding: 14px 22px; margin: -28px 20px 15px 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); 
-            display: flex; align-items: center; cursor: pointer; pointer-events: auto;
-        }
+        .ola-input { border-bottom: 1.5px solid #e2e8f0; padding: 12px 0; transition: 0.3s; }
+        .ola-input:focus-within { border-color: #000; }
+        .cab-card { border: 1.5px solid #f1f5f9; transition: 0.2s; cursor: pointer; }
+        .cab-card.active { border-color: #37b01a; background: #f0fdf4; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
 
-    <div class="top-ui">
-        <div class="flex justify-between items-center">
-            <div class="bg-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg pointer-events-auto"><i class="fa-solid fa-bars-staggered"></i></div>
-            <div class="bg-white px-4 py-2 rounded-full shadow-lg text-[11px] font-black pointer-events-auto flex items-center gap-2">
-                <div class="w-2 h-2 bg-green-500 rounded-full"></div> V-WAY LIVE
+    <div class="booking-side">
+        <div class="p-5 flex items-center justify-between border-b">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-bars text-xl"></i>
+                <h1 class="text-2xl font-black italic tracking-tighter">V-WAY</h1>
             </div>
-            <div class="bg-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg pointer-events-auto"><i class="fa-solid fa-user"></i></div>
+            <div class="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full">Support</div>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <div class="flex gap-4">
+                <div class="flex flex-col items-center gap-1 mt-2">
+                    <div class="w-2.5 h-2.5 rounded-full border-2 border-green-500"></div>
+                    <div class="w-[1px] h-10 bg-gray-200"></div>
+                    <div class="w-2.5 h-2.5 bg-red-500"></div>
+                </div>
+                <div class="flex-1 space-y-4">
+                    <div class="ola-input">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase">Current Location</p>
+                        <input type="text" id="pickup" value="Detecting live location..." class="w-full text-sm font-bold outline-none pt-1 bg-transparent">
+                    </div>
+                    <div class="ola-input" onclick="openSearch()">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase">Enter Destination</p>
+                        <input type="text" id="drop" placeholder="Search for a drop location" class="w-full text-sm font-bold outline-none pt-1 cursor-pointer" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex border-b">
+            <div class="flex-1 text-center py-3 border-b-2 border-black font-bold text-sm">Daily</div>
+            <div class="flex-1 text-center py-3 text-gray-400 font-bold text-sm">Rentals</div>
+            <div class="flex-1 text-center py-3 text-gray-400 font-bold text-sm">Outstation</div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+            <div class="cab-card active p-4 rounded-xl flex items-center gap-4">
+                <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png" class="w-12">
+                <div class="flex-1">
+                    <p class="font-bold text-sm">V-Way Bike <i class="fa-solid fa-user text-[10px] text-gray-400 ml-1"></i>1</p>
+                    <p class="text-[10px] text-gray-500">Fast & economical rides</p>
+                </div>
+                <p class="font-black text-lg">₹<span class="price-tag">0</span></p>
+            </div>
+
+            <div class="cab-card p-4 rounded-xl flex items-center gap-4">
+                <img src="https://cdn-icons-png.flaticon.com/512/741/741407.png" class="w-12">
+                <div class="flex-1">
+                    <p class="font-bold text-sm">V-Way Mini <i class="fa-solid fa-user text-[10px] text-gray-400 ml-1"></i>4</p>
+                    <p class="text-[10px] text-gray-500">Comfy AC hatchbacks</p>
+                </div>
+                <p class="font-black text-lg">₹<span class="price-tag">0</span></p>
+            </div>
+        </div>
+
+        <div class="p-4 border-t shadow-2xl">
+            <button onclick="bookNow()" id="bookBtn" class="w-full bg-black text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest disabled:opacity-30" disabled>Select Destination First</button>
         </div>
     </div>
 
-    <div class="bottom-sheet">
-        <div class="search-box" onclick="openSearch()">
-            <i class="fa-solid fa-magnifying-glass text-green-500 mr-3 text-lg"></i>
-            <span id="destDisplay" class="text-gray-900 font-bold truncate text-sm">Search for a destination</span>
+    <div id="searchOverlay" class="fixed inset-0 bg-white z-[100] hidden flex-col">
+        <div class="p-5 flex items-center gap-4 border-b">
+            <i class="fa-solid fa-arrow-left text-xl" onclick="closeSearch()"></i>
+            <input type="text" id="searchInput" oninput="doSearch(this.value)" placeholder="Search for your destination" class="flex-1 outline-none font-bold">
         </div>
-
-        <div class="flex gap-4 overflow-x-auto px-5 pb-5 no-scrollbar">
-            <div class="bg-gray-50 border p-3 rounded-2xl min-w-[90px] text-center" onclick="alert('Bike Selected')">
-                <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png" class="w-10 mx-auto">
-                <p class="text-[10px] font-black mt-1 uppercase">Bike</p>
-            </div>
-            <div class="bg-gray-50 border p-3 rounded-2xl min-w-[90px] text-center">
-                <img src="https://cdn-icons-png.flaticon.com/512/741/741407.png" class="w-10 mx-auto">
-                <p class="text-[10px] font-black mt-1 uppercase">Car</p>
-            </div>
-            <div class="bg-gray-50 border p-3 rounded-2xl min-w-[90px] text-center">
-                <img src="https://cdn-icons-png.flaticon.com/512/649/649730.png" class="w-10 mx-auto">
-                <p class="text-[10px] font-black mt-1 uppercase">Parcel</p>
-            </div>
-        </div>
-
-        <div id="fareInfo" class="hidden px-5 pb-4">
-            <div class="bg-black text-white p-4 rounded-2xl flex justify-between items-center mb-4">
-                <div><p class="text-[10px] font-bold opacity-60">EST. FARE</p><p class="text-2xl font-black">₹<span id="fareVal">0</span></p></div>
-                <button onclick="confirmRide()" class="bg-green-500 text-black px-6 py-3 rounded-xl font-black text-xs uppercase">Book Now</button>
-            </div>
-        </div>
-
-        <div class="flex justify-around py-3 border-t border-gray-50 pb-6">
-            <div class="text-center text-black"><i class="fa-solid fa-house text-xl"></i><p class="text-[9px] font-black mt-1">HOME</p></div>
-            <div class="text-center text-gray-300"><i class="fa-solid fa-bolt text-xl"></i><p class="text-[9px] font-black mt-1">ELECTRIC</p></div>
-            <div class="text-center text-gray-300"><i class="fa-solid fa-wallet text-xl"></i><p class="text-[9px] font-black mt-1">WALLET</p></div>
-        </div>
-    </div>
-
-    <div id="searchPage">
-        <div class="p-4 flex items-center gap-3 border-b">
-            <i class="fa-solid fa-arrow-left text-xl p-2" onclick="closeSearch()"></i>
-            <div class="flex-1 bg-gray-100 rounded-full px-4 py-2 flex items-center">
-                <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                <input type="text" id="sInput" oninput="liveSearch(this.value)" placeholder="Search for any street or city..." class="bg-transparent flex-1 outline-none text-sm font-bold py-1">
-                <i class="fa-solid fa-magnifying-glass text-gray-400" onclick="liveSearch(document.getElementById('sInput').value)"></i>
-            </div>
-        </div>
-        <div id="results" class="res-list">
-            <div class="p-10 text-center text-gray-400 text-xs">Start typing to see locations...</div>
-        </div>
+        <div id="searchResults" class="flex-1 overflow-y-auto"></div>
     </div>
 
     <script>
-        // --- CONFIG & MAP ---
-        const firebaseConfig = { apiKey: "AIzaSyCLApPjVXdJzPP1Il1qskZ396-uCEmgWrQ", databaseURL: "https://amazan-df63b-default-rtdb.firebaseio.com", projectId: "amazan-df63b", appId: "1:602713652429:web:f86940fcdeb990d09e3d84" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // --- 1. Map Init ---
+        let userLoc = [26.9124, 75.7873];
+        let map = L.map('map', { zoomControl: false, attributionControl: false }).setView(userLoc, 15);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        let map, userLoc = [26.9124, 75.7873], sTimer;
-
-        function init() {
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView(userLoc, 15);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-            
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(p => {
-                    userLoc = [p.coords.latitude, p.coords.longitude];
-                    map.setView(userLoc, 16);
-                    L.circleMarker(userLoc, {radius:7, fillColor:"#10b981", color:"#fff", weight:3, fillOpacity:1}).addTo(map);
-                }, null, {enableHighAccuracy: true});
-            }
+        // --- 2. Live Location ---
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(p => {
+                userLoc = [p.coords.latitude, p.coords.longitude];
+                map.setView(userLoc, 16);
+                L.circleMarker(userLoc, {radius:6, fillColor:"#37b01a", color:"#fff", weight:3, fillOpacity:1}).addTo(map);
+                document.getElementById('pickup').value = "Your Current Location";
+            });
         }
-        init();
 
-        function openSearch() { document.getElementById('searchPage').style.display = 'flex'; document.getElementById('sInput').focus(); }
-        function closeSearch() { document.getElementById('searchPage').style.display = 'none'; }
+        // --- 3. Search Logic ---
+        function openSearch() { document.getElementById('searchOverlay').style.display = 'flex'; document.getElementById('searchInput').focus(); }
+        function closeSearch() { document.getElementById('searchOverlay').style.display = 'none'; }
 
-        // --- ULTRA FAST SEARCH (Gali-Gali) ---
-        async function liveSearch(q) {
+        async function doSearch(q) {
             if(q.length < 2) return;
-            clearTimeout(sTimer);
-            sTimer = setTimeout(async () => {
-                const list = document.getElementById('results');
-                try {
-                    // Fast Street API
-                    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lat=${userLoc[0]}&lon=${userLoc[1]}`);
-                    const data = await res.json();
-                    
-                    list.innerHTML = data.features.map(f => {
-                        const p = f.properties;
-                        const addr = [p.name, p.street, p.city, p.state].filter(Boolean).join(', ');
-                        return `
-                        <div class="location-item" onclick="pickLoc('${p.name || p.street}', ${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]})">
-                            <i class="fa-solid fa-location-arrow text-gray-300"></i>
-                            <div class="truncate"><p class="font-bold text-sm text-gray-800">${p.name || p.street}</p><p class="text-[10px] text-gray-400 truncate">${addr}</p></div>
-                        </div>`;
-                    }).join('');
-                } catch(e) { console.error(e); }
-            }, 80); // Hyper fast 80ms delay
+            const res = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=8&lat=${userLoc[0]}&lon=${userLoc[1]}`);
+            const data = await res.json();
+            document.getElementById('searchResults').innerHTML = data.features.map(f => `
+                <div class="p-5 border-b flex items-center gap-4 active:bg-gray-50" onclick="pickDest('${f.properties.name}', ${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]})">
+                    <i class="fa-solid fa-location-dot text-gray-300"></i>
+                    <div><p class="font-bold text-sm">${f.properties.name || "Unknown"}</p><p class="text-[10px] text-gray-400">${f.properties.city || ''} ${f.properties.state || ''}</p></div>
+                </div>
+            `).join('');
         }
 
-        function pickLoc(name, lat, lon) {
+        function pickDest(name, lat, lon) {
+            document.getElementById('drop').value = name;
             const dist = (map.distance(userLoc, [lat, lon]) / 1000).toFixed(1);
-            document.getElementById('destDisplay').innerText = name;
-            document.getElementById('fareVal').innerText = Math.round(dist * 10);
-            document.getElementById('fareInfo').classList.remove('hidden');
+            
+            // Calculate Prices (Ola Style)
+            document.querySelectorAll('.price-tag').forEach((el, i) => {
+                el.innerText = Math.round(dist * (i === 0 ? 10 : 15));
+            });
+
+            document.getElementById('bookBtn').disabled = false;
+            document.getElementById('bookBtn').innerText = "Search V-Way Cab";
+            
             L.marker([lat, lon]).addTo(map);
             map.fitBounds([userLoc, [lat, lon]], {padding: [100, 100]});
             closeSearch();
         }
 
-        function confirmRide() {
-            db.ref('bookings').push({ dest: document.getElementById('destDisplay').innerText, fare: document.getElementById('fareVal').innerText, time: new Date().toLocaleString() });
-            alert("V-Way Ride Booked! Driver searching...");
+        function bookNow() {
+            alert("Finding nearest V-Way partner...");
         }
     </script>
 </body>
